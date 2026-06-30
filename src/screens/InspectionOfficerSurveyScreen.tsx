@@ -1,4 +1,5 @@
-// import React, {useState, useEffect, useMemo} from 'react';
+
+// import React, {useState, useEffect, useMemo, useCallback} from 'react';
 // import AsyncStorage from '@react-native-async-storage/async-storage';
 // import {
 //   View, Text, TouchableOpacity, StyleSheet, ScrollView,
@@ -7,44 +8,36 @@
 // } from 'react-native';
 // import Geolocation from '@react-native-community/geolocation';
 
+// // ── Import your posh questions exactly like the web does ──
+// // import poshQuestions from '../data/Poshqquestionsdata';
+// // const ALL_QUESTIONS = poshQuestions.parts.flatMap(p => p.questions);
+// // const getQText = (q: any) =>
+// //   q.en || q.question || q.text || q.questionEn || q.questionText || q.q || '';
+// //
+// // ↑ Uncomment the 3 lines above and remove the mock below once you wire up your data file.
+
+// // ── MOCK — replace with your real poshQuestions import ──
+// const ALL_QUESTIONS: {no: number; en: string}[] = Array.from({length: 20}, (_, i) => ({
+//   no: i + 1,
+//   en: `Question ${i + 1} — Sample POSH compliance question text goes here`,
+// }));
+// const getQText = (q: any) =>
+//   q.en || q.question || q.text || q.questionEn || q.questionText || q.q || '';
+// // ── END MOCK ──
+
 // const API_BASE  = 'https://mahaposhact.saavi.co.in/api';
 // const PINK      = '#CD366B';
 // const PINK_DARK = '#b82a5c';
 // const BLUE      = '#2C3D83';
 // const BLUE_DEEP = '#1d2a60';
 // const CREAM     = '#FBF3EE';
-// const GREEN     = '#22c55e';
-// const RED       = '#ef4444';
-// const AMBER     = '#f59e0b';
 
-// // ── Case Type options (same as web Surveys.jsx) ──
 // const CASE_OPTIONS = [
 //   {value: 'case1', label: 'Case 1 — Physical Visit (1st Visit)'},
 //   {value: 'case2', label: 'Case 2 — Questionnaire Inspection'},
 //   {value: 'case3', label: 'Case 3 — Re-inspection Notice'},
 //   {value: 'case4', label: 'Case 4 — Final Inspection (after 15 days)'},
 // ];
-
-// const STATUS_OPTIONS: Record<string, {value: string; label: string}[]> = {
-//   case1: [
-//     {value: 'compiled',    label: '✓ Compiled — Complied'},
-//     {value: 'notcompiled', label: '✗ Not Compiled — Non-Compliant'},
-//     {value: 'pending',     label: '⏳ Pending — Under Review'},
-//   ],
-//   case2: [
-//     {value: 'compiled',    label: '✓ Compiled — Complied'},
-//     {value: 'notcompiled', label: '✗ Not Compiled — Non-Compliant'},
-//     {value: 'pending',     label: '⏳ Pending — Under Review'},
-//   ],
-//   case3: [
-//     {value: 'pending',     label: '⏳ Pending — Notice Issued'},
-//     {value: 'notcompiled', label: '✗ Not Compiled — No Response'},
-//   ],
-//   case4: [
-//     {value: 'compiled',    label: '✓ Compiled — Final Compliance'},
-//     {value: 'rejected',    label: '✗ Rejected — Permanently Rejected'},
-//   ],
-// };
 
 // interface Survey {
 //   submissionid: number;
@@ -58,9 +51,13 @@
 //   submittedat:  string;
 // }
 
-// interface ReviewForm {
+// interface QuestionReview {
+//   answer:  'yes' | 'no' | '';
+//   comment: string;
+// }
+
+// interface ReviewState {
 //   casetype:           string;
-//   status:             string;
 //   officername:        string;
 //   officerdesignation: string;
 //   finalremark:        string;
@@ -68,11 +65,17 @@
 //   longitude:          number | null;
 //   locationLoading:    boolean;
 //   locationError:      string;
+//   // round
+//   reviewRound:        number;
+//   roundLoading:       boolean;
+//   noQuestionIds:      number[];
+//   // per-question
+//   questionReviews:    Record<number, QuestionReview>;
+//   companyAnswers:     Record<string, string>;
 // }
 
-// const EMPTY_REVIEW: ReviewForm = {
+// const EMPTY_REVIEW: ReviewState = {
 //   casetype:           'case1',
-//   status:             'compiled',
 //   officername:        '',
 //   officerdesignation: 'Inspection Officer',
 //   finalremark:        '',
@@ -80,9 +83,14 @@
 //   longitude:          null,
 //   locationLoading:    false,
 //   locationError:      '',
+//   reviewRound:        1,
+//   roundLoading:       false,
+//   noQuestionIds:      [],
+//   questionReviews:    {},
+//   companyAnswers:     {},
 // };
 
-// // ── Simple Select Row ──
+// // ── Simple dropdown ──
 // function SelectRow({
 //   label, value, options, onSelect,
 // }: {label: string; value: string; options: {value: string; label: string}[]; onSelect: (v: string) => void}) {
@@ -115,30 +123,112 @@
 //   );
 // }
 
+// // ── Single question review row ──
+// const QuestionRow = React.memo(function QuestionRow({
+//   q,
+//   review,
+//   companyAns,
+//   onAnswer,
+//   onComment,
+// }: {
+//   q:          {no: number; [key: string]: any};
+//   review:     QuestionReview | undefined;
+//   companyAns: string | undefined;
+//   onAnswer:   (no: number, ans: 'yes' | 'no') => void;
+//   onComment:  (no: number, text: string)       => void;
+// }) {
+//   const offAns  = review?.answer || '';
+//   const qText   = getQText(q) || `Question ${q.no}`;
+//   const cmpLabel =
+//     companyAns === 'yes' ? '✓ Yes' :
+//     companyAns === 'no'  ? '✗ No'  : '—';
+//   const cmpColor =
+//     companyAns === 'yes' ? '#15803d' :
+//     companyAns === 'no'  ? '#b91c1c' : 'rgba(44,61,131,0.45)';
+//   const cmpBg =
+//     companyAns === 'yes' ? 'rgba(34,197,94,0.12)'  :
+//     companyAns === 'no'  ? 'rgba(239,68,68,0.12)'  : 'rgba(44,61,131,0.07)';
+
+//   const rowBorder =
+//     offAns === 'yes' ? 'rgba(34,197,94,0.35)' :
+//     offAns === 'no'  ? 'rgba(239,68,68,0.35)' : 'rgba(44,61,131,0.10)';
+//   const rowBg =
+//     offAns === 'yes' ? 'rgba(34,197,94,0.03)' :
+//     offAns === 'no'  ? 'rgba(239,68,68,0.03)' : '#fff';
+
+//   return (
+//     <View style={[qr.row, {borderColor: rowBorder, backgroundColor: rowBg}]}>
+//       {/* Question text */}
+//       <Text style={qr.qText}>
+//         <Text style={qr.qNo}>{q.no}. </Text>
+//         {qText}
+//       </Text>
+
+//       {/* Company answer badge */}
+//       <View style={[qr.companyBadge, {backgroundColor: cmpBg}]}>
+//         <Text style={[qr.companyLabel, {color: cmpColor}]}>
+//           Company: {cmpLabel}
+//         </Text>
+//       </View>
+
+//       {/* Officer Yes / No buttons */}
+//       <View style={qr.officerRow}>
+//         <Text style={qr.officerLabel}>Officer Review</Text>
+//         <View style={qr.btnPair}>
+//           <TouchableOpacity
+//             style={[qr.optBtn, offAns === 'yes' && qr.yesActive]}
+//             onPress={() => onAnswer(q.no, 'yes')}>
+//             <Text style={[qr.optText, offAns === 'yes' && {color: '#fff'}]}>✓ Yes</Text>
+//           </TouchableOpacity>
+//           <TouchableOpacity
+//             style={[qr.optBtn, offAns === 'no' && qr.noActive]}
+//             onPress={() => onAnswer(q.no, 'no')}>
+//             <Text style={[qr.optText, offAns === 'no' && {color: '#fff'}]}>✗ No</Text>
+//           </TouchableOpacity>
+//         </View>
+//       </View>
+
+//       {/* Comment (required for No) */}
+//       {offAns === 'no' && (
+//         <View style={qr.commentWrap}>
+//           <Text style={qr.commentLabel}>⚠ Comment required for No answer</Text>
+//           <TextInput
+//             style={qr.commentInput}
+//             placeholder="Non-compliance चे कारण लिहा..."
+//             placeholderTextColor="rgba(44,61,131,0.35)"
+//             value={review?.comment || ''}
+//             onChangeText={t => onComment(q.no, t)}
+//             multiline
+//             textAlignVertical="top"
+//           />
+//         </View>
+//       )}
+//     </View>
+//   );
+// });
+
 // export default function InspectionOfficerSurveyScreen({navigation}: any) {
-//   const [surveys, setSurveys]     = useState<Survey[]>([]);
-//   const [loading, setLoading]     = useState(true);
+//   const [surveys, setSurveys]       = useState<Survey[]>([]);
+//   const [loading, setLoading]       = useState(true);
 //   const [refreshing, setRefreshing] = useState(false);
-//   const [search, setSearch]       = useState('');
-//   const [authUser, setAuthUser]   = useState<any>(null);
+//   const [search, setSearch]         = useState('');
+//   const [authUser, setAuthUser]     = useState<any>(null);
 
 //   // Review modal
-//   const [reviewSurvey, setReviewSurvey]       = useState<Survey | null>(null);
-//   const [reviewForm, setReviewForm]           = useState<ReviewForm>(EMPTY_REVIEW);
+//   const [reviewSurvey, setReviewSurvey]         = useState<Survey | null>(null);
+//   const [rv, setRv]                             = useState<ReviewState>(EMPTY_REVIEW);
 //   const [submittingReview, setSubmittingReview] = useState(false);
 
 //   // Detail modal
 //   const [detailSurvey, setDetailSurvey]   = useState<any>(null);
 //   const [detailLoading, setDetailLoading] = useState(false);
 
-//   // Load auth user from storage
 //   useEffect(() => {
 //     AsyncStorage.getItem('authUser').then(val => {
 //       if (val) setAuthUser(JSON.parse(val));
 //     });
 //   }, []);
 
-//   // Fetch surveys from /surveys API
 //   const fetchSurveys = async (isRefresh = false) => {
 //     try {
 //       isRefresh ? setRefreshing(true) : setLoading(true);
@@ -151,7 +241,7 @@
 //       });
 //       const data = await res.json();
 //       if (data.success) setSurveys(data.data || []);
-//     } catch (err) {
+//     } catch {
 //       Alert.alert('Error', 'Surveys load karnya madhe error aala');
 //     } finally {
 //       setLoading(false);
@@ -161,94 +251,178 @@
 
 //   useEffect(() => {fetchSurveys();}, []);
 
-//   // Fetch survey detail
 //   const openDetail = async (submissionid: number) => {
 //     setDetailLoading(true);
+//     setDetailSurvey({submissionid, loading: true});
 //     try {
 //       const token = await AsyncStorage.getItem('authToken') || '';
 //       const res   = await fetch(`${API_BASE}/surveys/${submissionid}`, {
 //         headers: token ? {Authorization: `Bearer ${token}`} : {},
 //       });
 //       const data = await res.json();
-//       if (data.success) setDetailSurvey({...data, submissionid});
+//       if (data.success) setDetailSurvey({...data, submissionid, loading: false});
 //     } catch {
 //       Alert.alert('Error', 'Detail load karnya madhe error');
+//       setDetailSurvey(null);
 //     } finally {
 //       setDetailLoading(false);
 //     }
 //   };
 
-//   // Open review modal + get geolocation
-//   const openReviewModal = (survey: Survey) => {
+//   // ── Open Review Modal: fetch round + company answers + geolocation ──
+//   const openReviewModal = async (survey: Survey) => {
 //     const officerName =
-//       authUser?.fullName || authUser?.fullname || authUser?.userName || authUser?.username || '';
-//     const initial: ReviewForm = {
+//       authUser?.fullName || authUser?.fullname ||
+//       authUser?.userName || authUser?.username || '';
+
+//     const initial: ReviewState = {
 //       ...EMPTY_REVIEW,
 //       officername:     officerName,
 //       locationLoading: true,
+//       roundLoading:    true,
 //     };
 //     setReviewSurvey(survey);
-//     setReviewForm(initial);
+//     setRv(initial);
 
+//     // 1) Geolocation
 //     Geolocation.getCurrentPosition(
-//       pos => {
-//         setReviewForm(p => ({
-//           ...p,
-//           latitude:        pos.coords.latitude,
-//           longitude:       pos.coords.longitude,
-//           locationLoading: false,
-//           locationError:   '',
-//         }));
-//       },
-//       () => {
-//         setReviewForm(p => ({
-//           ...p,
-//           locationLoading: false,
-//           locationError:   'Location unavailable — default coordinates use hotil',
-//           latitude:        0,
-//           longitude:       0,
-//         }));
-//       },
+//       pos => setRv(p => ({
+//         ...p,
+//         latitude:        pos.coords.latitude,
+//         longitude:       pos.coords.longitude,
+//         locationLoading: false,
+//         locationError:   '',
+//       })),
+//       () => setRv(p => ({
+//         ...p,
+//         locationLoading: false,
+//         locationError:   'Location unavailable — default 0,0 use hoil',
+//         latitude:        0,
+//         longitude:       0,
+//       })),
 //       {timeout: 8000, enableHighAccuracy: false},
 //     );
+
+//     // 2) Review round
+//     try {
+//       const token = await AsyncStorage.getItem('authToken') || '';
+//       const res   = await fetch(
+//         `${API_BASE}/officer/report/get-round?orgid=${survey.orgid}`,
+//         {headers: token ? {Authorization: `Bearer ${token}`} : {}},
+//       );
+//       const data = await res.json();
+//       if (data.success) {
+//         setRv(p => ({
+//           ...p,
+//           reviewRound:   data.reviewround  || 1,
+//           noQuestionIds: data.noQuestionIds || [],
+//           roundLoading:  false,
+//         }));
+//       } else {
+//         setRv(p => ({...p, roundLoading: false}));
+//       }
+//     } catch {
+//       setRv(p => ({...p, roundLoading: false}));
+//     }
+
+//     // 3) Company answers
+//     try {
+//       const token = await AsyncStorage.getItem('authToken') || '';
+//       const res   = await fetch(`${API_BASE}/surveys/${survey.submissionid}`, {
+//         headers: token ? {Authorization: `Bearer ${token}`} : {},
+//       });
+//       const data = await res.json();
+//       if (data.success) {
+//         setRv(p => ({...p, companyAnswers: data.answers || {}}));
+//       }
+//     } catch { /* ignore */ }
 //   };
 
-//   const updateReview = (key: keyof ReviewForm) => (val: string) =>
-//     setReviewForm(p => ({...p, [key]: val}));
+//   // Questions to show based on round
+//   const questionsToReview = useMemo(() => {
+//     if (rv.reviewRound === 1) return ALL_QUESTIONS;
+//     return ALL_QUESTIONS.filter(q => rv.noQuestionIds.includes(q.no));
+//   }, [rv.reviewRound, rv.noQuestionIds]);
 
-//   const handleCasetypeChange = (ct: string) =>
-//     setReviewForm(p => ({...p, casetype: ct, status: STATUS_OPTIONS[ct][0].value}));
+//   const answeredCount = questionsToReview.filter(q => rv.questionReviews[q.no]?.answer).length;
+//   const hasAnyNo      = questionsToReview.some(q => rv.questionReviews[q.no]?.answer === 'no');
 
-//   // Submit review → /officer/report/quick-review
+//   const setQAnswer = useCallback((no: number, ans: 'yes' | 'no') => {
+//     setRv(p => ({
+//       ...p,
+//       questionReviews: {
+//         ...p.questionReviews,
+//         [no]: {
+//           answer:  ans,
+//           comment: ans === 'yes' ? '' : (p.questionReviews[no]?.comment || ''),
+//         },
+//       },
+//     }));
+//   }, []);
+
+//   const setQComment = useCallback((no: number, text: string) => {
+//     setRv(p => ({
+//       ...p,
+//       questionReviews: {
+//         ...p.questionReviews,
+//         [no]: {...p.questionReviews[no], comment: text},
+//       },
+//     }));
+//   }, []);
+
+//   // ── Submit ──
 //   const handleReviewSubmit = async () => {
-//     if (!reviewForm.officername.trim())        {Alert.alert('Error', 'Officer Name bhara'); return;}
-//     if (!reviewForm.officerdesignation.trim()) {Alert.alert('Error', 'Designation bhara'); return;}
-//     if (!reviewForm.finalremark.trim())        {Alert.alert('Error', 'Remark / Observation bhara'); return;}
-//     if (reviewForm.locationLoading)            {Alert.alert('Info', 'Location fetch hoto aahe, thamba...'); return;}
+//     if (!rv.officername.trim())        {Alert.alert('Error', 'Officer Name bhara'); return;}
+//     if (!rv.officerdesignation.trim()) {Alert.alert('Error', 'Designation bhara'); return;}
+//     if (!rv.finalremark.trim())        {Alert.alert('Error', 'Overall Remark bhara'); return;}
+//     if (rv.locationLoading)            {Alert.alert('Info',  'Location fetch hoto aahe…'); return;}
+//     if (rv.roundLoading)               {Alert.alert('Info',  'Round info load hoto aahe…'); return;}
+
+//     const unanswered = questionsToReview.filter(q => !rv.questionReviews[q.no]?.answer);
+//     if (unanswered.length > 0) {
+//       Alert.alert('Error', `${unanswered.length} question(s) cha answer dya`); return;
+//     }
+//     const noWithoutComment = questionsToReview.filter(
+//       q => rv.questionReviews[q.no]?.answer === 'no' &&
+//            !rv.questionReviews[q.no]?.comment?.trim(),
+//     );
+//     if (noWithoutComment.length > 0) {
+//       Alert.alert('Error', `${noWithoutComment.length} No answer(s) la comment laha`); return;
+//     }
 
 //     setSubmittingReview(true);
 //     try {
 //       const token = await AsyncStorage.getItem('authToken') || '';
-//       const res   = await fetch(`${API_BASE}/officer/report/quick-review`, {
+//       const payload = {
+//         orgid:              reviewSurvey!.orgid,
+//         casetype:           rv.casetype,
+//         officername:        rv.officername.trim(),
+//         officerdesignation: rv.officerdesignation.trim(),
+//         finalremark:        rv.finalremark.trim(),
+//         latitude:           rv.latitude  ?? 0,
+//         longitude:          rv.longitude ?? 0,
+//         questionReviews:    questionsToReview.map(q => ({
+//           questionid: q.no,
+//           answer:     rv.questionReviews[q.no]?.answer,
+//           comment:    rv.questionReviews[q.no]?.comment || '',
+//         })),
+//       };
+//       const res  = await fetch(`${API_BASE}/officer/report/quick-review`, {
 //         method:  'POST',
 //         headers: {
 //           'Content-Type': 'application/json',
 //           ...(token ? {Authorization: `Bearer ${token}`} : {}),
 //         },
-//         body: JSON.stringify({
-//           orgid:              reviewSurvey!.orgid,
-//           casetype:           reviewForm.casetype,
-//           status:             reviewForm.status,
-//           officername:        reviewForm.officername.trim(),
-//           officerdesignation: reviewForm.officerdesignation.trim(),
-//           finalremark:        reviewForm.finalremark.trim(),
-//           latitude:           reviewForm.latitude  ?? 0,
-//           longitude:          reviewForm.longitude ?? 0,
-//         }),
+//         body: JSON.stringify(payload),
 //       });
 //       const data = await res.json();
 //       if (data.success) {
-//         Alert.alert('Success', 'Review submit kelee!', [{
+//         const fs = data.finalstatus;
+//         const msg =
+//           fs === 'compiled'  ? '✅ Survey Complied! Final submission done.' :
+//           fs === 'rejected'  ? '❌ Survey Permanently Rejected.'           :
+//                                '📋 Review submitted. 15-day notice issued.';
+//         Alert.alert('Success', msg, [{
 //           text: 'OK',
 //           onPress: () => {setReviewSurvey(null); fetchSurveys();},
 //         }]);
@@ -262,7 +436,6 @@
 //     }
 //   };
 
-//   // Logout
 //   const handleLogout = () => {
 //     Alert.alert('Logout', 'Logout karnar ahat?', [
 //       {text: 'Cancel', style: 'cancel'},
@@ -273,7 +446,6 @@
 //     ]);
 //   };
 
-//   // Filtered surveys
 //   const filtered = useMemo(() => {
 //     if (!search.trim()) return surveys;
 //     const q = search.toLowerCase();
@@ -285,17 +457,15 @@
 //     );
 //   }, [surveys, search]);
 
-//   // Status color helper
-//   const statusColor = (status: string) => {
-//     if (status === 'compiled')    return {color: '#15803d', bg: 'rgba(34,197,94,0.12)'};
-//     if (status === 'notcompiled') return {color: '#b91c1c', bg: 'rgba(239,68,68,0.12)'};
-//     if (status === 'rejected')    return {color: '#b91c1c', bg: 'rgba(239,68,68,0.12)'};
-//     if (status === 'pending')     return {color: '#b45309', bg: 'rgba(245,158,11,0.12)'};
-//     return {color: BLUE, bg: 'rgba(44,61,131,0.08)'};
-//   };
-
 //   const formatDate = (d: string) =>
 //     d ? new Date(d).toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'}) : '—';
+
+//   // Submit button label
+//   const submitLabel =
+//     hasAnyNo && rv.reviewRound === 2 ? '⚠ Submit (Will Reject)'    :
+//     hasAnyNo                         ? '📋 Submit (15-day Notice)'  :
+//                                        '✅ Submit (All Complied)';
+//   const submitIsReject = hasAnyNo && rv.reviewRound === 2;
 
 //   return (
 //     <SafeAreaView style={s.safe}>
@@ -319,7 +489,6 @@
 //         contentContainerStyle={s.scroll}
 //         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => fetchSurveys(true)} colors={[PINK]} />}>
 
-//         {/* ── Header ── */}
 //         <View style={s.pageHeader}>
 //           <View style={s.pageHeaderLeft}>
 //             <View style={s.pageHeaderIcon}><Text style={{fontSize: 22}}>📋</Text></View>
@@ -335,21 +504,17 @@
 
 //         {/* Stats */}
 //         <View style={s.statsRow}>
-//           <View style={s.statCard}>
-//             <View style={s.statIcon}><Text style={{fontSize: 18}}>📋</Text></View>
-//             <Text style={s.statNum}>{filtered.length}</Text>
-//             <Text style={s.statLabel}>Total Surveys</Text>
-//           </View>
-//           <View style={s.statCard}>
-//             <View style={s.statIcon}><Text style={{fontSize: 18}}>📍</Text></View>
-//             <Text style={s.statNum}>{new Set(filtered.map(s => s.district)).size}</Text>
-//             <Text style={s.statLabel}>Districts</Text>
-//           </View>
-//           <View style={s.statCard}>
-//             <View style={s.statIcon}><Text style={{fontSize: 18}}>✅</Text></View>
-//             <Text style={s.statNum}>34</Text>
-//             <Text style={s.statLabel}>MH Total</Text>
-//           </View>
+//           {[
+//             {icon: '📋', num: filtered.length,                              label: 'Total Surveys'},
+//             {icon: '📍', num: new Set(filtered.map(sv => sv.district)).size, label: 'Districts'},
+//             {icon: '✅', num: 34,                                            label: 'MH Total'},
+//           ].map(({icon, num, label}) => (
+//             <View key={label} style={s.statCard}>
+//               <View style={s.statIcon}><Text style={{fontSize: 18}}>{icon}</Text></View>
+//               <Text style={s.statNum}>{num}</Text>
+//               <Text style={s.statLabel}>{label}</Text>
+//             </View>
+//           ))}
 //         </View>
 
 //         {/* Search */}
@@ -393,12 +558,9 @@
 //           ) : (
 //             filtered.map(sv => (
 //               <View key={sv.submissionid} style={s.surveyCard}>
-//                 {/* Org Row */}
 //                 <View style={s.orgRow}>
 //                   <View style={s.avatar}>
-//                     <Text style={s.avatarText}>
-//                       {(sv.orgname || '?').charAt(0).toUpperCase()}
-//                     </Text>
+//                     <Text style={s.avatarText}>{(sv.orgname || '?').charAt(0).toUpperCase()}</Text>
 //                   </View>
 //                   <View style={{flex: 1}}>
 //                     <Text style={s.orgName} numberOfLines={1}>{sv.orgname || '—'}</Text>
@@ -407,7 +569,6 @@
 //                   <Text style={s.dateText}>{formatDate(sv.submittedat)}</Text>
 //                 </View>
 
-//                 {/* Info Pills */}
 //                 <View style={s.pillsRow}>
 //                   <View style={s.districtPill}>
 //                     <Text style={s.districtPillText}>📍 {sv.district || '—'}</Text>
@@ -419,22 +580,16 @@
 //                   ) : null}
 //                 </View>
 
-//                 {/* Contact */}
 //                 <View style={s.contactRow}>
 //                   <Text style={s.contactText}>👤 {sv.concernname || '—'}</Text>
 //                   <Text style={s.contactText}>📱 {sv.concernmobile || '—'}</Text>
 //                 </View>
 
-//                 {/* Action Buttons */}
 //                 <View style={s.actionRow}>
-//                   <TouchableOpacity
-//                     style={s.viewBtn}
-//                     onPress={() => openDetail(sv.submissionid)}>
+//                   <TouchableOpacity style={s.viewBtn} onPress={() => openDetail(sv.submissionid)}>
 //                     <Text style={s.viewBtnText}>👁 View</Text>
 //                   </TouchableOpacity>
-//                   <TouchableOpacity
-//                     style={s.reviewBtn}
-//                     onPress={() => openReviewModal(sv)}>
+//                   <TouchableOpacity style={s.reviewBtn} onPress={() => openReviewModal(sv)}>
 //                     <Text style={s.reviewBtnText}>📝 Review</Text>
 //                   </TouchableOpacity>
 //                 </View>
@@ -442,7 +597,6 @@
 //             ))
 //           )}
 //         </View>
-
 //       </ScrollView>
 
 //       {/* ── Detail Modal ── */}
@@ -466,7 +620,6 @@
 //               </View>
 //             ) : (
 //               <ScrollView showsVerticalScrollIndicator={false}>
-//                 {/* Org Info */}
 //                 <Text style={ms.sectionTitle}>ORGANIZATION INFO</Text>
 //                 <View style={ms.infoGrid}>
 //                   {[
@@ -485,7 +638,6 @@
 //                   ))}
 //                 </View>
 
-//                 {/* Answers */}
 //                 <Text style={[ms.sectionTitle, {marginTop: 16}]}>
 //                   SURVEY ANSWERS ({Object.keys(detailSurvey?.answers || {}).length} questions)
 //                 </Text>
@@ -506,9 +658,15 @@
 //       </Modal>
 
 //       {/* ── Review Modal ── */}
-//       <Modal visible={!!reviewSurvey} animationType="slide" transparent onRequestClose={() => setReviewSurvey(null)}>
+//       <Modal
+//         visible={!!reviewSurvey}
+//         animationType="slide"
+//         transparent
+//         onRequestClose={() => setReviewSurvey(null)}>
 //         <View style={ms.overlay}>
 //           <View style={ms.modal}>
+
+//             {/* Header */}
 //             <View style={ms.mhead}>
 //               <View>
 //                 <Text style={ms.mtitle}>Survey Review</Text>
@@ -520,7 +678,8 @@
 //             </View>
 
 //             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-//               {/* Org info box */}
+
+//               {/* Org Info */}
 //               <View style={ms.orgBox}>
 //                 <Text style={ms.orgBoxName}>{reviewSurvey?.orgname || '—'}</Text>
 //                 <Text style={ms.orgBoxSub}>
@@ -528,78 +687,123 @@
 //                 </Text>
 //               </View>
 
-//               {/* Survey submitted badge */}
-//               <View style={ms.successBadge}>
-//                 <Text style={ms.successBadgeText}>✅ Survey Successfully Submitted</Text>
-//               </View>
+//               {/* Round Badge */}
+//               {rv.roundLoading ? (
+//                 <View style={[ms.roundBadge, ms.roundBadge1]}>
+//                   <ActivityIndicator color={BLUE} size="small" />
+//                   <Text style={ms.roundBadgeText}>Round info load hoto aahe…</Text>
+//                 </View>
+//               ) : rv.reviewRound === 1 ? (
+//                 <View style={[ms.roundBadge, ms.roundBadge1]}>
+//                   <Text style={ms.roundBadgeText}>📋 1st Review — सगळ्या questions review करा</Text>
+//                 </View>
+//               ) : (
+//                 <View style={[ms.roundBadge, ms.roundBadge2]}>
+//                   <Text style={[ms.roundBadgeText, {color: '#b45309'}]}>
+//                     ⚠️ 2nd Review (15 days) — {rv.noQuestionIds.length} Non-compliant questions only
+//                   </Text>
+//                 </View>
+//               )}
 
 //               {/* Case Type */}
 //               <SelectRow
 //                 label="Case Type"
-//                 value={reviewForm.casetype}
+//                 value={rv.casetype}
 //                 options={CASE_OPTIONS}
-//                 onSelect={handleCasetypeChange}
+//                 onSelect={v => setRv(p => ({...p, casetype: v}))}
 //               />
 
-//               {/* Status */}
-//               <SelectRow
-//                 label="Inspection Status"
-//                 value={reviewForm.status}
-//                 options={STATUS_OPTIONS[reviewForm.casetype] || []}
-//                 onSelect={val => setReviewForm(p => ({...p, status: val}))}
-//               />
-
-//               {/* Officer Details divider */}
+//               {/* Officer Details */}
 //               <View style={ms.divider}>
 //                 <Text style={ms.dividerText}>OFFICER DETAILS</Text>
 //                 <View style={ms.dividerLine} />
 //               </View>
 
-//               {/* Officer Name */}
 //               <Text style={ms.flbl}>OFFICER NAME</Text>
 //               <TextInput
 //                 style={ms.textInput}
 //                 placeholder="Full Name"
 //                 placeholderTextColor="rgba(44,61,131,0.35)"
-//                 value={reviewForm.officername}
-//                 onChangeText={updateReview('officername')}
+//                 value={rv.officername}
+//                 onChangeText={v => setRv(p => ({...p, officername: v}))}
 //               />
 
-//               {/* Designation */}
 //               <Text style={ms.flbl}>DESIGNATION</Text>
 //               <TextInput
 //                 style={ms.textInput}
 //                 placeholder="e.g. Inspection Officer"
 //                 placeholderTextColor="rgba(44,61,131,0.35)"
-//                 value={reviewForm.officerdesignation}
-//                 onChangeText={updateReview('officerdesignation')}
+//                 value={rv.officerdesignation}
+//                 onChangeText={v => setRv(p => ({...p, officerdesignation: v}))}
 //               />
 
-//               {/* Remark */}
-//               <Text style={ms.flbl}>REMARK / OBSERVATION</Text>
+//               {/* ── Question Review Section ── */}
+//               <View style={ms.divider}>
+//                 <Text style={ms.dividerText}>QUESTION REVIEW</Text>
+//                 <View style={ms.dividerLine} />
+//                 <View style={ms.answeredPill}>
+//                   <Text style={ms.answeredPillText}>{answeredCount}/{questionsToReview.length}</Text>
+//                 </View>
+//               </View>
+
+//               {rv.roundLoading ? (
+//                 <View style={ms.centerBox}>
+//                   <ActivityIndicator color={PINK} />
+//                   <Text style={ms.centerText}>Questions load hoto aahet…</Text>
+//                 </View>
+//               ) : (
+//                 questionsToReview.map(q => (
+//                   <QuestionRow
+//                     key={q.no}
+//                     q={q}
+//                     review={rv.questionReviews[q.no]}
+//                     companyAns={rv.companyAnswers[q.no] || rv.companyAnswers[String(q.no)]}
+//                     onAnswer={setQAnswer}
+//                     onComment={setQComment}
+//                   />
+//                 ))
+//               )}
+
+//               {/* Warning if any No */}
+//               {hasAnyNo && (
+//                 <View style={ms.warnBox}>
+//                   <Text style={ms.warnText}>
+//                     {rv.reviewRound === 1
+//                       ? '⚠️ No असलेल्या questions ला 15 days notice दिला जाईल'
+//                       : '⚠️ 2nd round मध्ये No आले तर survey Permanently Rejected होईल'}
+//                   </Text>
+//                 </View>
+//               )}
+
+//               {/* Overall Remark */}
+//               <View style={ms.divider}>
+//                 <Text style={ms.dividerText}>OVERALL REMARK</Text>
+//                 <View style={ms.dividerLine} />
+//               </View>
+
 //               <TextInput
 //                 style={[ms.textInput, {height: 90, textAlignVertical: 'top'}]}
-//                 placeholder="Write your observation / remarks here..."
+//                 placeholder="Write overall observation / remarks here..."
 //                 placeholderTextColor="rgba(44,61,131,0.35)"
-//                 value={reviewForm.finalremark}
-//                 onChangeText={updateReview('finalremark')}
+//                 value={rv.finalremark}
+//                 onChangeText={v => setRv(p => ({...p, finalremark: v}))}
 //                 multiline
 //               />
 
-//               {/* Location Status */}
-//               {reviewForm.locationLoading ? (
+//               {/* Location */}
+//               {rv.locationLoading ? (
 //                 <View style={[ms.locationBox, ms.locationLoading]}>
 //                   <ActivityIndicator color={BLUE} size="small" />
 //                   <Text style={ms.locationText}>📍 Location fetch hoto aahe…</Text>
 //                 </View>
-//               ) : reviewForm.locationError ? (
+//               ) : rv.locationError ? (
 //                 <View style={[ms.locationBox, ms.locationWarning]}>
-//                   <Text style={ms.locationText}>⚠️ {reviewForm.locationError}</Text>
+//                   <Text style={ms.locationText}>⚠️ {rv.locationError}</Text>
 //                 </View>
 //               ) : (
 //                 <View style={[ms.locationBox, ms.locationSuccess]}>
 //                   <Text style={ms.locationText}>
-//                     ✅ Location milali — {reviewForm.latitude?.toFixed(4)}, {reviewForm.longitude?.toFixed(4)}
+//                     ✅ Location milali — {rv.latitude?.toFixed(4)}, {rv.longitude?.toFixed(4)}
 //                   </Text>
 //                 </View>
 //               )}
@@ -612,16 +816,14 @@
 //                 <TouchableOpacity
 //                   style={[
 //                     ms.submitBtn,
-//                     reviewForm.status === 'rejected' && ms.submitBtnReject,
-//                     (submittingReview || reviewForm.locationLoading) && ms.submitBtnDisabled,
+//                     submitIsReject       && ms.submitBtnReject,
+//                     (submittingReview || rv.locationLoading || rv.roundLoading) && ms.submitBtnDisabled,
 //                   ]}
 //                   onPress={handleReviewSubmit}
-//                   disabled={submittingReview || reviewForm.locationLoading}>
+//                   disabled={submittingReview || rv.locationLoading || rv.roundLoading}>
 //                   {submittingReview
 //                     ? <ActivityIndicator color="#fff" />
-//                     : <Text style={ms.submitBtnText}>
-//                         {reviewForm.status === 'rejected' ? '✗ Submit Rejection' : '✓ Submit Review'}
-//                       </Text>}
+//                     : <Text style={ms.submitBtnText}>{submitLabel}</Text>}
 //                 </TouchableOpacity>
 //               </View>
 //             </ScrollView>
@@ -635,6 +837,35 @@
 //     </SafeAreaView>
 //   );
 // }
+
+// // ── Question Row Styles ──
+// const qr = StyleSheet.create({
+//   row: {
+//     borderWidth:   1.5,
+//     borderRadius:  14,
+//     padding:       12,
+//     marginBottom:  8,
+//     backgroundColor: '#fff',
+//   },
+//   qText:   {fontSize: 12.5, lineHeight: 18, color: BLUE_DEEP, marginBottom: 8},
+//   qNo:     {color: PINK, fontWeight: '800'},
+//   companyBadge: {alignSelf: 'flex-start', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999, marginBottom: 10},
+//   companyLabel: {fontSize: 11, fontWeight: '700'},
+//   officerRow:   {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'},
+//   officerLabel: {fontSize: 10, fontWeight: '800', color: 'rgba(44,61,131,0.45)', textTransform: 'uppercase', letterSpacing: 0.5},
+//   btnPair:      {flexDirection: 'row', gap: 6},
+//   optBtn:       {paddingHorizontal: 16, paddingVertical: 8, borderRadius: 8, borderWidth: 1.5, borderColor: 'rgba(44,61,131,0.15)', backgroundColor: '#fff'},
+//   optText:      {fontSize: 12.5, fontWeight: '700', color: BLUE_DEEP},
+//   yesActive:    {backgroundColor: '#22c55e', borderColor: 'transparent'},
+//   noActive:     {backgroundColor: '#ef4444', borderColor: 'transparent'},
+//   commentWrap:  {marginTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(239,68,68,0.15)', paddingTop: 10},
+//   commentLabel: {fontSize: 11, fontWeight: '700', color: '#b91c1c', marginBottom: 6},
+//   commentInput: {
+//     borderWidth: 1.5, borderColor: 'rgba(239,68,68,0.3)', borderRadius: 10,
+//     padding: 10, fontSize: 13, color: BLUE_DEEP, minHeight: 65,
+//     backgroundColor: 'rgba(239,68,68,0.02)', textAlignVertical: 'top',
+//   },
+// });
 
 // // ── Screen Styles ──
 // const s = StyleSheet.create({
@@ -684,9 +915,9 @@
 //   dateText:   {fontSize: 11, color: 'rgba(44,61,131,0.45)', flexShrink: 0},
 
 //   pillsRow:      {flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8},
-//   districtPill:  {flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(44,61,131,0.07)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999},
+//   districtPill:  {backgroundColor: 'rgba(44,61,131,0.07)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999},
 //   districtPillText:{fontSize: 11, fontWeight: '700', color: BLUE},
-//   talukaPill:    {flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(107,33,168,0.07)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999},
+//   talukaPill:    {backgroundColor: 'rgba(107,33,168,0.07)', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999},
 //   talukaPillText:{fontSize: 11, fontWeight: '700', color: '#6b21a8'},
 
 //   contactRow: {flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12},
@@ -705,7 +936,7 @@
 // // ── Modal Styles ──
 // const ms = StyleSheet.create({
 //   overlay: {flex: 1, backgroundColor: 'rgba(29,42,96,0.5)', justifyContent: 'flex-end'},
-//   modal:   {backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderTopWidth: 4, borderTopColor: PINK, padding: 22, maxHeight: '92%'},
+//   modal:   {backgroundColor: '#fff', borderTopLeftRadius: 24, borderTopRightRadius: 24, borderTopWidth: 4, borderTopColor: PINK, padding: 22, maxHeight: '95%'},
 
 //   mhead:     {flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 18, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.08)'},
 //   mtitle:    {fontSize: 17, fontWeight: '800', color: BLUE_DEEP},
@@ -727,16 +958,17 @@
 //   ansBadge:     {paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999},
 //   ansBadgeText: {fontSize: 11, fontWeight: '700'},
 
-//   // Review modal
 //   orgBox:     {backgroundColor: 'rgba(44,61,131,0.04)', borderRadius: 12, padding: 14, marginBottom: 14, borderLeftWidth: 3, borderLeftColor: PINK},
 //   orgBoxName: {fontSize: 15, fontWeight: '800', color: BLUE_DEEP},
 //   orgBoxSub:  {fontSize: 12, color: 'rgba(44,61,131,0.5)', marginTop: 3},
 
-//   successBadge:     {flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(34,197,94,0.10)', borderRadius: 999, paddingVertical: 7, paddingHorizontal: 16, alignSelf: 'center', marginBottom: 16},
-//   successBadgeText: {fontSize: 12.5, fontWeight: '700', color: '#15803d'},
+//   roundBadge:  {flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 999, alignSelf: 'flex-start', marginBottom: 14},
+//   roundBadge1: {backgroundColor: 'rgba(44,61,131,0.08)'},
+//   roundBadge2: {backgroundColor: 'rgba(245,158,11,0.12)'},
+//   roundBadgeText: {fontSize: 12.5, fontWeight: '700', color: BLUE},
 
 //   flbl:      {fontSize: 11, fontWeight: '700', color: 'rgba(44,61,131,0.55)', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8},
-//   selectBox: {flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: 'rgba(44,61,131,0.15)', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, backgroundColor: '#fff', marginBottom: 0},
+//   selectBox: {flexDirection: 'row', alignItems: 'center', borderWidth: 1.5, borderColor: 'rgba(44,61,131,0.15)', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, backgroundColor: '#fff'},
 //   selectText:{flex: 1, fontSize: 13, fontWeight: '600', color: BLUE_DEEP},
 //   selectArrow:{fontSize: 10, color: 'rgba(44,61,131,0.5)'},
 //   menu:      {borderWidth: 1, borderColor: 'rgba(44,61,131,0.12)', borderRadius: 12, overflow: 'hidden', backgroundColor: '#fff', marginTop: 4, marginBottom: 4},
@@ -748,6 +980,11 @@
 //   divider:     {flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 14, marginTop: 4},
 //   dividerText: {fontSize: 10.5, fontWeight: '800', color: 'rgba(44,61,131,0.35)', letterSpacing: 0.8, textTransform: 'uppercase'},
 //   dividerLine: {flex: 1, height: 1, backgroundColor: 'rgba(44,61,131,0.08)'},
+//   answeredPill:{backgroundColor: 'rgba(205,54,107,0.10)', paddingHorizontal: 10, paddingVertical: 3, borderRadius: 999},
+//   answeredPillText:{fontSize: 11, fontWeight: '700', color: PINK},
+
+//   warnBox:  {flexDirection: 'row', alignItems: 'flex-start', gap: 8, padding: 12, borderRadius: 10, backgroundColor: 'rgba(245,158,11,0.10)', borderWidth: 1, borderColor: 'rgba(245,158,11,0.25)', marginBottom: 14},
+//   warnText: {fontSize: 12.5, fontWeight: '600', color: '#b45309', flex: 1},
 
 //   textInput: {borderWidth: 1.5, borderColor: 'rgba(44,61,131,0.15)', borderRadius: 12, padding: 12, fontSize: 14, color: BLUE_DEEP, backgroundColor: '#fff', marginBottom: 14},
 
@@ -767,7 +1004,8 @@
 // });
 
 
-// ===========================================================================
+
+
 
 import React, {useState, useEffect, useMemo, useCallback} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -777,23 +1015,12 @@ import {
   TextInput, Modal, RefreshControl,
 } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
+import poshQuestions from '../data/Poshqquestionsdata';
 
-// ── Import your posh questions exactly like the web does ──
-// import poshQuestions from '../data/Poshqquestionsdata';
-// const ALL_QUESTIONS = poshQuestions.parts.flatMap(p => p.questions);
-// const getQText = (q: any) =>
-//   q.en || q.question || q.text || q.questionEn || q.questionText || q.q || '';
-//
-// ↑ Uncomment the 3 lines above and remove the mock below once you wire up your data file.
-
-// ── MOCK — replace with your real poshQuestions import ──
-const ALL_QUESTIONS: {no: number; en: string}[] = Array.from({length: 20}, (_, i) => ({
-  no: i + 1,
-  en: `Question ${i + 1} — Sample POSH compliance question text goes here`,
-}));
+// ── Real question bank — same as web ──
+const ALL_QUESTIONS = poshQuestions.parts.flatMap(p => p.questions);
 const getQText = (q: any) =>
   q.en || q.question || q.text || q.questionEn || q.questionText || q.q || '';
-// ── END MOCK ──
 
 const API_BASE  = 'https://mahaposhact.saavi.co.in/api';
 const PINK      = '#CD366B';
@@ -835,11 +1062,9 @@ interface ReviewState {
   longitude:          number | null;
   locationLoading:    boolean;
   locationError:      string;
-  // round
   reviewRound:        number;
   roundLoading:       boolean;
   noQuestionIds:      number[];
-  // per-question
   questionReviews:    Record<number, QuestionReview>;
   companyAnswers:     Record<string, string>;
 }
@@ -928,20 +1153,17 @@ const QuestionRow = React.memo(function QuestionRow({
 
   return (
     <View style={[qr.row, {borderColor: rowBorder, backgroundColor: rowBg}]}>
-      {/* Question text */}
       <Text style={qr.qText}>
         <Text style={qr.qNo}>{q.no}. </Text>
         {qText}
       </Text>
 
-      {/* Company answer badge */}
       <View style={[qr.companyBadge, {backgroundColor: cmpBg}]}>
         <Text style={[qr.companyLabel, {color: cmpColor}]}>
           Company: {cmpLabel}
         </Text>
       </View>
 
-      {/* Officer Yes / No buttons */}
       <View style={qr.officerRow}>
         <Text style={qr.officerLabel}>Officer Review</Text>
         <View style={qr.btnPair}>
@@ -958,7 +1180,6 @@ const QuestionRow = React.memo(function QuestionRow({
         </View>
       </View>
 
-      {/* Comment (required for No) */}
       {offAns === 'no' && (
         <View style={qr.commentWrap}>
           <Text style={qr.commentLabel}>⚠ Comment required for No answer</Text>
@@ -984,12 +1205,10 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
   const [search, setSearch]         = useState('');
   const [authUser, setAuthUser]     = useState<any>(null);
 
-  // Review modal
   const [reviewSurvey, setReviewSurvey]         = useState<Survey | null>(null);
   const [rv, setRv]                             = useState<ReviewState>(EMPTY_REVIEW);
   const [submittingReview, setSubmittingReview] = useState(false);
 
-  // Detail modal
   const [detailSurvey, setDetailSurvey]   = useState<any>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
@@ -1108,7 +1327,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
     } catch { /* ignore */ }
   };
 
-  // Questions to show based on round
   const questionsToReview = useMemo(() => {
     if (rv.reviewRound === 1) return ALL_QUESTIONS;
     return ALL_QUESTIONS.filter(q => rv.noQuestionIds.includes(q.no));
@@ -1230,7 +1448,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
   const formatDate = (d: string) =>
     d ? new Date(d).toLocaleDateString('en-IN', {day: '2-digit', month: 'short', year: 'numeric'}) : '—';
 
-  // Submit button label
   const submitLabel =
     hasAnyNo && rv.reviewRound === 2 ? '⚠ Submit (Will Reject)'    :
     hasAnyNo                         ? '📋 Submit (15-day Notice)'  :
@@ -1241,7 +1458,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
     <SafeAreaView style={s.safe}>
       <StatusBar backgroundColor={BLUE_DEEP} barStyle="light-content" />
 
-      {/* Top Bar */}
       <View style={s.topbar}>
         <View style={s.topbarLeft}>
           <View style={s.topbarIcon}><Text style={{fontSize: 16}}>🛡</Text></View>
@@ -1272,7 +1488,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
           </TouchableOpacity>
         </View>
 
-        {/* Stats */}
         <View style={s.statsRow}>
           {[
             {icon: '📋', num: filtered.length,                              label: 'Total Surveys'},
@@ -1287,7 +1502,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
           ))}
         </View>
 
-        {/* Search */}
         <View style={s.searchWrap}>
           <Text style={{fontSize: 14, paddingHorizontal: 4}}>🔍</Text>
           <TextInput
@@ -1304,7 +1518,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
           )}
         </View>
 
-        {/* Survey List */}
         <View style={s.tableCard}>
           <View style={s.tableHead}>
             <Text style={s.tableHeadTitle}>All Survey Submissions</Text>
@@ -1397,6 +1610,7 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
                     ['Org Type',  detailSurvey?.submission?.orgtype],
                     ['District',  detailSurvey?.submission?.district],
                     ['Taluka',    detailSurvey?.submission?.taluka],
+                    ['Ward',      detailSurvey?.submission?.ward],
                     ['Contact',   detailSurvey?.submission?.concernname],
                     ['Mobile',    detailSurvey?.submission?.concernmobile],
                     ['Submitted', formatDate(detailSurvey?.submission?.submittedat)],
@@ -1411,16 +1625,22 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
                 <Text style={[ms.sectionTitle, {marginTop: 16}]}>
                   SURVEY ANSWERS ({Object.keys(detailSurvey?.answers || {}).length} questions)
                 </Text>
-                {Object.entries(detailSurvey?.answers || {}).map(([qid, ans]) => (
-                  <View key={qid} style={ms.ansRow}>
-                    <Text style={ms.ansQ}><Text style={ms.ansQId}>Q{qid}. </Text>Question {qid}</Text>
-                    <View style={[ms.ansBadge, {backgroundColor: ans === 'yes' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'}]}>
-                      <Text style={[ms.ansBadgeText, {color: ans === 'yes' ? '#15803d' : '#b91c1c'}]}>
-                        {ans === 'yes' ? '✓ Yes' : '✗ No'}
+                {Object.entries(detailSurvey?.answers || {}).map(([qid, ans]) => {
+                  const qDef = ALL_QUESTIONS.find(q => String(q.no) === String(qid));
+                  const qText = qDef ? getQText(qDef) : `Question ${qid}`;
+                  return (
+                    <View key={qid} style={ms.ansRow}>
+                      <Text style={ms.ansQ} numberOfLines={2}>
+                        <Text style={ms.ansQId}>Q{qid}. </Text>{qText}
                       </Text>
+                      <View style={[ms.ansBadge, {backgroundColor: ans === 'yes' ? 'rgba(34,197,94,0.12)' : 'rgba(239,68,68,0.12)'}]}>
+                        <Text style={[ms.ansBadgeText, {color: ans === 'yes' ? '#15803d' : '#b91c1c'}]}>
+                          {ans === 'yes' ? '✓ Yes' : '✗ No'}
+                        </Text>
+                      </View>
                     </View>
-                  </View>
-                ))}
+                  );
+                })}
               </ScrollView>
             )}
           </View>
@@ -1436,7 +1656,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
         <View style={ms.overlay}>
           <View style={ms.modal}>
 
-            {/* Header */}
             <View style={ms.mhead}>
               <View>
                 <Text style={ms.mtitle}>Survey Review</Text>
@@ -1449,7 +1668,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
 
             <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
 
-              {/* Org Info */}
               <View style={ms.orgBox}>
                 <Text style={ms.orgBoxName}>{reviewSurvey?.orgname || '—'}</Text>
                 <Text style={ms.orgBoxSub}>
@@ -1457,7 +1675,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
                 </Text>
               </View>
 
-              {/* Round Badge */}
               {rv.roundLoading ? (
                 <View style={[ms.roundBadge, ms.roundBadge1]}>
                   <ActivityIndicator color={BLUE} size="small" />
@@ -1475,7 +1692,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
                 </View>
               )}
 
-              {/* Case Type */}
               <SelectRow
                 label="Case Type"
                 value={rv.casetype}
@@ -1483,7 +1699,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
                 onSelect={v => setRv(p => ({...p, casetype: v}))}
               />
 
-              {/* Officer Details */}
               <View style={ms.divider}>
                 <Text style={ms.dividerText}>OFFICER DETAILS</Text>
                 <View style={ms.dividerLine} />
@@ -1507,7 +1722,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
                 onChangeText={v => setRv(p => ({...p, officerdesignation: v}))}
               />
 
-              {/* ── Question Review Section ── */}
               <View style={ms.divider}>
                 <Text style={ms.dividerText}>QUESTION REVIEW</Text>
                 <View style={ms.dividerLine} />
@@ -1534,7 +1748,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
                 ))
               )}
 
-              {/* Warning if any No */}
               {hasAnyNo && (
                 <View style={ms.warnBox}>
                   <Text style={ms.warnText}>
@@ -1545,7 +1758,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
                 </View>
               )}
 
-              {/* Overall Remark */}
               <View style={ms.divider}>
                 <Text style={ms.dividerText}>OVERALL REMARK</Text>
                 <View style={ms.dividerLine} />
@@ -1560,7 +1772,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
                 multiline
               />
 
-              {/* Location */}
               {rv.locationLoading ? (
                 <View style={[ms.locationBox, ms.locationLoading]}>
                   <ActivityIndicator color={BLUE} size="small" />
@@ -1578,7 +1789,6 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
                 </View>
               )}
 
-              {/* Buttons */}
               <View style={ms.btnRow}>
                 <TouchableOpacity style={ms.cancelBtn} onPress={() => setReviewSurvey(null)}>
                   <Text style={ms.cancelBtnText}>Cancel</Text>
