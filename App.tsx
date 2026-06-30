@@ -14,7 +14,7 @@ const App = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Login"
+        initialRouteName="CompanyLogin"
         screenOptions={{headerShown: false}}>
         {/* Admin/Officer Login */}
         <Stack.Screen name="Login" component={LoginScreen} />
