@@ -1016,13 +1016,14 @@ import {
 } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
 import poshQuestions from '../data/Poshqquestionsdata';
+import {API_BASE} from '../config';
 
 // ── Real question bank — same as web ──
 const ALL_QUESTIONS = poshQuestions.parts.flatMap(p => p.questions);
 const getQText = (q: any) =>
   q.en || q.question || q.text || q.questionEn || q.questionText || q.q || '';
 
-const API_BASE  = 'https://mahaposhact.saavi.co.in/api';
+// const API_BASE  = 'https://mahaposhact.saavi.co.in/api';
 const PINK      = '#CD366B';
 const PINK_DARK = '#b82a5c';
 const BLUE      = '#2C3D83';
