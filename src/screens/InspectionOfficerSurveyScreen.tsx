@@ -416,15 +416,26 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
     }
   };
 
+  // const handleLogout = () => {
+  //   Alert.alert('Logout', 'Logout karnar ahat?', [
+  //     {text: 'Cancel', style: 'cancel'},
+  //     {text: 'Logout', style: 'destructive', onPress: async () => {
+  //       await AsyncStorage.multiRemove(['authToken', 'authUser']);
+  //       navigation.replace('CompanyLogin');
+  //     }},
+  //   ]);
+  // };
+
   const handleLogout = () => {
-    Alert.alert('Logout', 'Logout karnar ahat?', [
-      {text: 'Cancel', style: 'cancel'},
-      {text: 'Logout', style: 'destructive', onPress: async () => {
-        await AsyncStorage.multiRemove(['authToken', 'authUser']);
-        navigation.replace('Login');
-      }},
-    ]);
-  };
+  Alert.alert('Logout', 'Logout karnar ahat?', [
+    {text: 'Cancel', style: 'cancel'},
+    {text: 'Logout', style: 'destructive', onPress: async () => {
+      await AsyncStorage.removeItem('authToken');
+      await AsyncStorage.removeItem('authUser');
+      navigation.replace('CompanyLogin');
+    }},
+  ]);
+};
 
   const filtered = useMemo(() => {
     if (!search.trim()) return surveys;
