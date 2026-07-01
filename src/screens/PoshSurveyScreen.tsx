@@ -268,7 +268,7 @@ export default function PoshSurveyScreen({navigation}: any) {
         </View>
 
         {/* ── Parts Tracker ── */}
-        <View style={s.partsCard}>
+        {/* <View style={s.partsCard}>
           <View style={s.partsHead}>
             <Text style={s.partsLabel}>SURVEY PARTS</Text>
             <Text style={s.partsTag}>{partIndex + 1} of {TOTAL_PARTS}</Text>
@@ -297,7 +297,7 @@ export default function PoshSurveyScreen({navigation}: any) {
           <View style={s.secureNote}>
             <Text style={s.secureText}>🔒 Secure Government Portal · 256-bit SSL</Text>
           </View>
-        </View>
+        </View> */}
 
         {/* ── Survey Card ── */}
         <View style={s.card}>
