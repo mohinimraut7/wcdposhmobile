@@ -149,6 +149,37 @@ export default function CompanyLoginScreen({navigation}: any) {
 
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
 
+          {/* ── Info Card ── */}
+        <View style={s.infoCard}>
+          <View style={s.badgeRow}>
+            <View style={s.logoBadge}><Text style={{fontSize: 22}}>🛡</Text></View>
+            <View style={s.logoBadge}><Text style={{fontSize: 22}}>⭐</Text></View>
+          </View>
+          <Text style={s.infoTitle}>Company Portal</Text>
+          <Text style={s.infoSub}>Maharashtra WCD</Text>
+          <View style={s.portalPill}>
+            <Text style={s.portalPillText}>🛡 POSH COMPLIANCE</Text>
+          </View>
+          <Text style={s.infoDesc}>
+            POSH Act 2013 Compliance —{'\n'}
+            Register, Survey & Inspection Management
+          </Text>
+          <View style={s.statsRow}>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>1,284</Text>
+              <Text style={s.statLabel}>Surveys</Text>
+            </View>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>342</Text>
+              <Text style={s.statLabel}>Companies</Text>
+            </View>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>34</Text>
+              <Text style={s.statLabel}>Districts</Text>
+            </View>
+          </View>
+        </View>
+
         {/* ── Login Card ── */}
         <View style={s.card}>
 
@@ -306,39 +337,10 @@ export default function CompanyLoginScreen({navigation}: any) {
           </View>
         </View>
 
-        {/* ── Info Card ── */}
-        <View style={s.infoCard}>
-          <View style={s.badgeRow}>
-            <View style={s.logoBadge}><Text style={{fontSize: 22}}>🛡</Text></View>
-            <View style={s.logoBadge}><Text style={{fontSize: 22}}>⭐</Text></View>
-          </View>
-          <Text style={s.infoTitle}>Company Portal</Text>
-          <Text style={s.infoSub}>Maharashtra WCD</Text>
-          <View style={s.portalPill}>
-            <Text style={s.portalPillText}>🛡 POSH COMPLIANCE</Text>
-          </View>
-          <Text style={s.infoDesc}>
-            POSH Act 2013 Compliance —{'\n'}
-            Register, Survey & Inspection Management
-          </Text>
-          <View style={s.statsRow}>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>1,284</Text>
-              <Text style={s.statLabel}>Surveys</Text>
-            </View>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>342</Text>
-              <Text style={s.statLabel}>Companies</Text>
-            </View>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>34</Text>
-              <Text style={s.statLabel}>Districts</Text>
-            </View>
-          </View>
-        </View>
+      
 
         {/* Flow Card */}
-        <View style={s.flowCard}>
+        {/* <View style={s.flowCard}>
           <View style={s.flowHead}>
             <Text style={s.flowLabel}>COMPANY FLOW</Text>
             <Text style={s.flowTag}>4 Steps</Text>
@@ -364,7 +366,7 @@ export default function CompanyLoginScreen({navigation}: any) {
           <View style={s.secureNote}>
             <Text style={s.secureText}>🔒 Secure Portal · 256-bit SSL Encrypted</Text>
           </View>
-        </View>
+        </View> */}
 
       </ScrollView>
 

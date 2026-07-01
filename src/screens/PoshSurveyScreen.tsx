@@ -13,6 +13,8 @@ import {
   Alert,
 } from 'react-native';
 
+import MaterialIcons from 'react-native-vector-icons/MaterialIcons';
+
 const API_BASE = 'https://mahaposhact.saavi.co.in/api/org';
 
 const PINK      = '#CD366B';
@@ -116,6 +118,21 @@ export default function PoshSurveyScreen({navigation}: any) {
 
   const answeredCount = currentPart.questions.filter(q => answers[q.no]).length;
 
+  const handleLogout = () => {
+  Alert.alert(
+    'Logout',
+    'Are you sure you want to logout?',
+    [
+      {text: 'Cancel', style: 'cancel'},
+      {text: 'Logout', style: 'destructive', onPress: async () => {
+        await AsyncStorage.removeItem('orgToken');
+        await AsyncStorage.removeItem('companyUser');
+        navigation.replace('CompanyLogin');
+      }},
+    ]
+  );
+};
+
   const handleNext = () => {
     if (!allAnsweredInPart) {
       Alert.alert(
@@ -195,12 +212,92 @@ export default function PoshSurveyScreen({navigation}: any) {
           <TouchableOpacity
             style={[s.langBtn, lang === 'mr' && s.langBtnActive]}
             onPress={() => setLang('mr')}>
-            <Text style={[s.langBtnText, lang === 'mr' && s.langBtnTextActive]}>मर</Text>
+            <Text style={[s.langBtnText, lang === 'mr' && s.langBtnTextActive]}>MR</Text>
           </TouchableOpacity>
         </View>
+        <TouchableOpacity style={s.logoutBtn} onPress={handleLogout}>
+  {/* <Text style={s.logoutIcon}>Logout</Text> */}
+  <MaterialIcons name="logout" size={20} color={PINK} />
+</TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+
+         {/* ── Info Card ── */}
+        <View style={s.infoCard}>
+          <View style={s.badgeRow}>
+            <View style={s.logoBadge}><Text style={{fontSize: 22}}>🛡</Text></View>
+            <View style={s.logoBadge}><Text style={{fontSize: 22}}>⭐</Text></View>
+          </View>
+          <Text style={s.infoTitle}>POSH Survey</Text>
+          <Text style={s.infoSub}>Maharashtra State</Text>
+          <View style={s.portalPill}>
+            <Text style={s.portalPillText}>🛡 COMPLIANCE PORTAL</Text>
+          </View>
+          <Text style={s.infoDesc}>
+            Women &amp; Child Development —{'\n'}
+            POSH Compliance Inspection System
+          </Text>
+
+          {/* Overall Progress */}
+          <View style={s.overallProgress}>
+            <Text style={s.overallLabel}>OVERALL PROGRESS</Text>
+            <View style={s.overallTrack}>
+              <View style={[s.overallFill, {width: `${progressPct}%`}]} />
+            </View>
+            <View style={s.overallMeta}>
+              <Text style={s.overallNum}>Part {partIndex + 1}</Text>
+              <Text style={s.overallTotal}>of {TOTAL_PARTS} Parts</Text>
+            </View>
+          </View>
+
+          <View style={s.statsRow}>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>{Object.keys(answers).length}</Text>
+              <Text style={s.statLabel}>Answered</Text>
+            </View>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>{TOTAL_PARTS}</Text>
+              <Text style={s.statLabel}>Parts</Text>
+            </View>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>34</Text>
+              <Text style={s.statLabel}>Districts</Text>
+            </View>
+          </View>
+        </View>
+
+        {/* ── Parts Tracker ── */}
+        <View style={s.partsCard}>
+          <View style={s.partsHead}>
+            <Text style={s.partsLabel}>SURVEY PARTS</Text>
+            <Text style={s.partsTag}>{partIndex + 1} of {TOTAL_PARTS}</Text>
+          </View>
+          {POSH_QUESTIONS.parts.map((p, i) => (
+            <View
+              key={i}
+              style={[
+                s.partRow,
+                i === partIndex && s.partRowActive,
+                i < partIndex && s.partRowDone,
+              ]}>
+              <View style={[s.partDot, i === partIndex && s.partDotActive, i < partIndex && s.partDotDone]}>
+                <Text style={[s.partDotText, (i === partIndex || i < partIndex) && s.partDotTextActive]}>
+                  {i < partIndex ? '✓' : i + 1}
+                </Text>
+              </View>
+              <Text style={s.partRowTitle} numberOfLines={2}>{p.title[lang]}</Text>
+              {i < partIndex && (
+                <View style={s.doneBadge}>
+                  <Text style={s.doneBadgeText}>Done</Text>
+                </View>
+              )}
+            </View>
+          ))}
+          <View style={s.secureNote}>
+            <Text style={s.secureText}>🔒 Secure Government Portal · 256-bit SSL</Text>
+          </View>
+        </View>
 
         {/* ── Survey Card ── */}
         <View style={s.card}>
@@ -300,81 +397,7 @@ export default function PoshSurveyScreen({navigation}: any) {
           </View>
         </View>
 
-        {/* ── Info Card ── */}
-        <View style={s.infoCard}>
-          <View style={s.badgeRow}>
-            <View style={s.logoBadge}><Text style={{fontSize: 22}}>🛡</Text></View>
-            <View style={s.logoBadge}><Text style={{fontSize: 22}}>⭐</Text></View>
-          </View>
-          <Text style={s.infoTitle}>POSH Survey</Text>
-          <Text style={s.infoSub}>Maharashtra State</Text>
-          <View style={s.portalPill}>
-            <Text style={s.portalPillText}>🛡 COMPLIANCE PORTAL</Text>
-          </View>
-          <Text style={s.infoDesc}>
-            Women &amp; Child Development —{'\n'}
-            POSH Compliance Inspection System
-          </Text>
-
-          {/* Overall Progress */}
-          <View style={s.overallProgress}>
-            <Text style={s.overallLabel}>OVERALL PROGRESS</Text>
-            <View style={s.overallTrack}>
-              <View style={[s.overallFill, {width: `${progressPct}%`}]} />
-            </View>
-            <View style={s.overallMeta}>
-              <Text style={s.overallNum}>Part {partIndex + 1}</Text>
-              <Text style={s.overallTotal}>of {TOTAL_PARTS} Parts</Text>
-            </View>
-          </View>
-
-          <View style={s.statsRow}>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>{Object.keys(answers).length}</Text>
-              <Text style={s.statLabel}>Answered</Text>
-            </View>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>{TOTAL_PARTS}</Text>
-              <Text style={s.statLabel}>Parts</Text>
-            </View>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>34</Text>
-              <Text style={s.statLabel}>Districts</Text>
-            </View>
-          </View>
-        </View>
-
-        {/* ── Parts Tracker ── */}
-        <View style={s.partsCard}>
-          <View style={s.partsHead}>
-            <Text style={s.partsLabel}>SURVEY PARTS</Text>
-            <Text style={s.partsTag}>{partIndex + 1} of {TOTAL_PARTS}</Text>
-          </View>
-          {POSH_QUESTIONS.parts.map((p, i) => (
-            <View
-              key={i}
-              style={[
-                s.partRow,
-                i === partIndex && s.partRowActive,
-                i < partIndex && s.partRowDone,
-              ]}>
-              <View style={[s.partDot, i === partIndex && s.partDotActive, i < partIndex && s.partDotDone]}>
-                <Text style={[s.partDotText, (i === partIndex || i < partIndex) && s.partDotTextActive]}>
-                  {i < partIndex ? '✓' : i + 1}
-                </Text>
-              </View>
-              <Text style={s.partRowTitle} numberOfLines={2}>{p.title[lang]}</Text>
-              {i < partIndex && (
-                <View style={s.doneBadge}>
-                  <Text style={s.doneBadgeText}>Done</Text>
-                </View>
-              )}
-            </View>
-          ))}
-          <View style={s.secureNote}>
-            <Text style={s.secureText}>🔒 Secure Government Portal · 256-bit SSL</Text>
-          </View>
-        </View>
+       
 
       </ScrollView>
 
@@ -392,6 +415,8 @@ const s = StyleSheet.create({
   topbar:          {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.08)'},
   backBtn:         {paddingVertical: 4, paddingRight: 8},
   backText:        {fontSize: 13, color: BLUE, fontWeight: '700'},
+  logoutBtn:  {width: 32, height: 32, borderRadius: 999, backgroundColor: 'rgba(205,54,107,0.10)', justifyContent: 'center', alignItems: 'center'},
+logoutIcon: {fontSize: 18, color: PINK, fontWeight: '800'},
   topbarTitle:     {fontSize: 14, fontWeight: '700', color: BLUE_DEEP},
   langToggle:      {flexDirection: 'row', backgroundColor: 'rgba(44,61,131,0.06)', borderRadius: 10, padding: 3, gap: 3},
   langBtn:         {paddingHorizontal: 10, paddingVertical: 5, borderRadius: 7},
