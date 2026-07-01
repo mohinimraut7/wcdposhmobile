@@ -122,6 +122,37 @@ export default function LoginScreen({navigation}: any) {
 
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
 
+           {/* ── Info Card ── */}
+        <View style={s.infoCard}>
+          <View style={s.badgeRow}>
+            <View style={s.logoBadge}><Text style={{fontSize: 24}}>🛡</Text></View>
+            <View style={s.logoBadge}><Text style={{fontSize: 24}}>⭐</Text></View>
+          </View>
+          <Text style={s.infoTitle}>WCD Inspection</Text>
+          <Text style={s.infoSub}>Maharashtra State</Text>
+          <View style={s.portalPill}>
+            <Text style={s.portalPillText}>👮 INSPECTION OFFICER PORTAL</Text>
+          </View>
+          <Text style={s.infoDesc}>
+            Women &amp; Child Development —{'\n'}
+            Unified Inspection Management System
+          </Text>
+          <View style={s.statsRow}>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>1,284</Text>
+              <Text style={s.statLabel}>Inspections</Text>
+            </View>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>86</Text>
+              <Text style={s.statLabel}>Officers</Text>
+            </View>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>34</Text>
+              <Text style={s.statLabel}>Districts</Text>
+            </View>
+          </View>
+        </View>
+
         {/* ── Login Card ── */}
         <View style={s.card}>
 
@@ -270,36 +301,7 @@ export default function LoginScreen({navigation}: any) {
           </View>
         </View>
 
-        {/* ── Info Card ── */}
-        <View style={s.infoCard}>
-          <View style={s.badgeRow}>
-            <View style={s.logoBadge}><Text style={{fontSize: 24}}>🛡</Text></View>
-            <View style={s.logoBadge}><Text style={{fontSize: 24}}>⭐</Text></View>
-          </View>
-          <Text style={s.infoTitle}>WCD Inspection</Text>
-          <Text style={s.infoSub}>Maharashtra State</Text>
-          <View style={s.portalPill}>
-            <Text style={s.portalPillText}>👮 INSPECTION OFFICER PORTAL</Text>
-          </View>
-          <Text style={s.infoDesc}>
-            Women &amp; Child Development —{'\n'}
-            Unified Inspection Management System
-          </Text>
-          <View style={s.statsRow}>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>1,284</Text>
-              <Text style={s.statLabel}>Inspections</Text>
-            </View>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>86</Text>
-              <Text style={s.statLabel}>Officers</Text>
-            </View>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>34</Text>
-              <Text style={s.statLabel}>Districts</Text>
-            </View>
-          </View>
-        </View>
+     
 
         {/* Officer Duties Card */}
         {/* <View style={s.dutiesCard}>
