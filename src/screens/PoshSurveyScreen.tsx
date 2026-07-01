@@ -309,7 +309,7 @@ export default function PoshSurveyScreen({navigation}: any) {
                 <Text style={{fontSize: 22}}>📋</Text>
               </View>
               <View>
-                <Text style={s.brandTitle}>POSH Survey</Text>
+                <Text style={s.brandTitle}>POSH Survey Form</Text>
                 <Text style={s.brandSub}>Inspection Portal</Text>
               </View>
             </View>
