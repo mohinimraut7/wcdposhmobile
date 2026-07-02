@@ -1,4 +1,4 @@
-import React, {useState, useMemo} from 'react';
+import React, {useState, useMemo,useRef, useEffect} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
@@ -105,8 +105,13 @@ export default function PoshSurveyScreen({navigation}: any) {
   const [loading, setLoading]     = useState(false);
   const [lang, setLang]           = useState<'en' | 'mr'>('en');
 
+  const scrollRef = useRef<ScrollView>(null);
   const currentPart = POSH_QUESTIONS.parts[partIndex];
   const progressPct = Math.round(((partIndex + 1) / TOTAL_PARTS) * 100);
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({y: 0, animated: true});
+  }, [partIndex]);
 
   const allAnsweredInPart = useMemo(
     () => currentPart.questions.every(q => answers[q.no]),
@@ -221,7 +226,12 @@ export default function PoshSurveyScreen({navigation}: any) {
 </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled">
+      {/* <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled"> */}
+
+        <ScrollView
+  ref={scrollRef}
+  contentContainerStyle={s.scroll}
+  keyboardShouldPersistTaps="handled">
 
          {/* ── Info Card ── */}
         <View style={s.infoCard}>
