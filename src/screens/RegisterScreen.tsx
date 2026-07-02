@@ -259,6 +259,37 @@ export default function RegisterScreen({navigation}: any) {
 
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
 
+          {/* ── Info Card ── */}
+        <View style={s.infoCard}>
+          <View style={s.badgeRow}>
+            <View style={s.logoBadge}><Text style={{fontSize: 22}}>🛡</Text></View>
+            <View style={s.logoBadge}><Text style={{fontSize: 22}}>⭐</Text></View>
+          </View>
+          <Text style={s.infoTitle}>WCD Inspection</Text>
+          <Text style={s.infoSub}>Maharashtra State</Text>
+          <View style={s.portalPill}>
+            <Text style={s.portalPillText}>🛡 COMPANY PORTAL</Text>
+          </View>
+          <Text style={s.infoDesc}>
+            Women &amp; Child Development —{'\n'}
+            POSH Compliance &amp; Inspection System
+          </Text>
+          <View style={s.statsRow}>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>1,284</Text>
+              <Text style={s.statLabel}>Inspections</Text>
+            </View>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>342</Text>
+              <Text style={s.statLabel}>Companies</Text>
+            </View>
+            <View style={s.statItem}>
+              <Text style={s.statNum}>34</Text>
+              <Text style={s.statLabel}>Districts</Text>
+            </View>
+          </View>
+        </View>
+
         {/* ── Form Card ── */}
         <View style={s.card}>
 
@@ -495,39 +526,10 @@ export default function RegisterScreen({navigation}: any) {
           </View>
         </View>
 
-        {/* ── Info Card ── */}
-        <View style={s.infoCard}>
-          <View style={s.badgeRow}>
-            <View style={s.logoBadge}><Text style={{fontSize: 22}}>🛡</Text></View>
-            <View style={s.logoBadge}><Text style={{fontSize: 22}}>⭐</Text></View>
-          </View>
-          <Text style={s.infoTitle}>WCD Inspection</Text>
-          <Text style={s.infoSub}>Maharashtra State</Text>
-          <View style={s.portalPill}>
-            <Text style={s.portalPillText}>🛡 COMPANY PORTAL</Text>
-          </View>
-          <Text style={s.infoDesc}>
-            Women &amp; Child Development —{'\n'}
-            POSH Compliance &amp; Inspection System
-          </Text>
-          <View style={s.statsRow}>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>1,284</Text>
-              <Text style={s.statLabel}>Inspections</Text>
-            </View>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>342</Text>
-              <Text style={s.statLabel}>Companies</Text>
-            </View>
-            <View style={s.statItem}>
-              <Text style={s.statNum}>34</Text>
-              <Text style={s.statLabel}>Districts</Text>
-            </View>
-          </View>
-        </View>
+      
 
         {/* Steps Card */}
-        <View style={s.stepsCard}>
+        {/* <View style={s.stepsCard}>
           <View style={s.stepsHead}>
             <Text style={s.stepsLabel}>REGISTRATION STEPS</Text>
             <Text style={s.stepsTag}>{page + 1} of 4</Text>
@@ -559,7 +561,7 @@ export default function RegisterScreen({navigation}: any) {
           <View style={s.secureNote}>
             <Text style={s.secureText}>🔒 Secure Government Portal · 256-bit SSL</Text>
           </View>
-        </View>
+        </View> */}
 
       </ScrollView>
 
