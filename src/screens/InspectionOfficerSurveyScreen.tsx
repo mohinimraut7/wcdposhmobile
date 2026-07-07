@@ -8,6 +8,8 @@ import {
 import Geolocation from '@react-native-community/geolocation';
 import poshQuestions from '../data/Poshqquestionsdata';
 import {API_BASE} from '../config';
+import {launchImageLibrary} from 'react-native-image-picker';
+import DocumentPicker from 'react-native-document-picker';
 
 // ── Real question bank — same as web ──
 const ALL_QUESTIONS = poshQuestions.parts.flatMap(p => p.questions);
@@ -45,6 +47,12 @@ interface QuestionReview {
   comment: string;
 }
 
+interface PickedFile {
+  uri:  string;
+  type: string;
+  name: string;
+}
+
 interface ReviewState {
   casetype:           string;
   officername:        string;
@@ -59,6 +67,9 @@ interface ReviewState {
   noQuestionIds:      number[];
   questionReviews:    Record<number, QuestionReview>;
   companyAnswers:     Record<string, string>;
+   officerPhoto:       PickedFile | null;   // ← ADD
+  officerDocument:    PickedFile | null;   // ← ADD
+  officerSignature:   PickedFile | null;   // ← ADD
 }
 
 const EMPTY_REVIEW: ReviewState = {
@@ -75,6 +86,9 @@ const EMPTY_REVIEW: ReviewState = {
   noQuestionIds:      [],
   questionReviews:    {},
   companyAnswers:     {},
+   officerPhoto:       null,   // ← ADD
+  officerDocument:    null,   // ← ADD
+  officerSignature:   null,   // ← ADD
 };
 
 // ── Simple dropdown ──
@@ -350,6 +364,43 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
     }));
   }, []);
 
+
+  const pickImage = useCallback((field: 'officerPhoto' | 'officerSignature') => {
+  launchImageLibrary({mediaType: 'photo', quality: 0.8}, (res) => {
+    if (res.didCancel || res.errorCode) return;
+    const asset = res.assets?.[0];
+    if (!asset?.uri) return;
+    setRv(p => ({
+      ...p,
+      [field]: {
+        uri:  asset.uri!,
+        type: asset.type || 'image/jpeg',
+        name: asset.fileName || `${field}.jpg`,
+      },
+    }));
+  });
+}, []);
+
+const pickDocument = useCallback(async () => {
+  try {
+    const res = await DocumentPicker.pickSingle({
+      type: [DocumentPicker.types.images, DocumentPicker.types.pdf],
+    });
+    setRv(p => ({
+      ...p,
+      officerDocument: {
+        uri:  res.uri,
+        type: res.type || 'application/octet-stream',
+        name: res.name || 'document',
+      },
+    }));
+  } catch (err) {
+    if (!DocumentPicker.isCancel(err)) {
+      Alert.alert('Error', 'Document select karnya madhe error');
+    }
+  }
+}, []);
+
   // ── Submit ──
   const handleReviewSubmit = async () => {
     if (!rv.officername.trim())        {Alert.alert('Error', 'Officer Name bhara'); return;}
@@ -370,32 +421,86 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
       Alert.alert('Error', `${noWithoutComment.length} No answer(s) la comment laha`); return;
     }
 
-    setSubmittingReview(true);
+    // setSubmittingReview(true);
+    // try {
+    //   const token = await AsyncStorage.getItem('authToken') || '';
+    //   const payload = {
+    //     orgid:              reviewSurvey!.orgid,
+    //     casetype:           rv.casetype,
+    //     officername:        rv.officername.trim(),
+    //     officerdesignation: rv.officerdesignation.trim(),
+    //     finalremark:        rv.finalremark.trim(),
+    //     latitude:           rv.latitude  ?? 0,
+    //     longitude:          rv.longitude ?? 0,
+    //     questionReviews:    questionsToReview.map(q => ({
+    //       questionid: q.no,
+    //       answer:     rv.questionReviews[q.no]?.answer,
+    //       comment:    rv.questionReviews[q.no]?.comment || '',
+    //     })),
+    //   };
+    //   const res  = await fetch(`${API_BASE}/officer/report/quick-review`, {
+    //     method:  'POST',
+    //     headers: {
+    //       'Content-Type': 'application/json',
+    //       ...(token ? {Authorization: `Bearer ${token}`} : {}),
+    //     },
+    //     body: JSON.stringify(payload),
+    //   });
+
+setSubmittingReview(true);
     try {
       const token = await AsyncStorage.getItem('authToken') || '';
-      const payload = {
-        orgid:              reviewSurvey!.orgid,
-        casetype:           rv.casetype,
-        officername:        rv.officername.trim(),
-        officerdesignation: rv.officerdesignation.trim(),
-        finalremark:        rv.finalremark.trim(),
-        latitude:           rv.latitude  ?? 0,
-        longitude:          rv.longitude ?? 0,
-        questionReviews:    questionsToReview.map(q => ({
-          questionid: q.no,
-          answer:     rv.questionReviews[q.no]?.answer,
-          comment:    rv.questionReviews[q.no]?.comment || '',
-        })),
-      };
-      const res  = await fetch(`${API_BASE}/officer/report/quick-review`, {
+
+      const reviewsArray = questionsToReview.map(q => ({
+        questionid: q.no,
+        answer:     rv.questionReviews[q.no]?.answer,
+        comment:    rv.questionReviews[q.no]?.comment || '',
+      }));
+
+      const fd = new FormData();
+      fd.append('orgid',              String(reviewSurvey!.orgid));
+      fd.append('casetype',           rv.casetype);
+      fd.append('officername',        rv.officername.trim());
+      fd.append('officerdesignation', rv.officerdesignation.trim());
+      fd.append('finalremark',        rv.finalremark.trim());
+      fd.append('latitude',           String(rv.latitude  ?? 0));
+      fd.append('longitude',          String(rv.longitude ?? 0));
+      fd.append('questionReviews',    JSON.stringify(reviewsArray));
+
+      if (rv.officerPhoto) {
+        fd.append('officerPhoto', {
+          uri:  rv.officerPhoto.uri,
+          type: rv.officerPhoto.type,
+          name: rv.officerPhoto.name,
+        } as any);
+      }
+      if (rv.officerDocument) {
+        fd.append('officerDocument', {
+          uri:  rv.officerDocument.uri,
+          type: rv.officerDocument.type,
+          name: rv.officerDocument.name,
+        } as any);
+      }
+      if (rv.officerSignature) {
+        fd.append('officerSignature', {
+          uri:  rv.officerSignature.uri,
+          type: rv.officerSignature.type,
+          name: rv.officerSignature.name,
+        } as any);
+      }
+
+      const res = await fetch(`${API_BASE}/officer/report/quick-review`, {
         method:  'POST',
         headers: {
-          'Content-Type': 'application/json',
+          Accept: 'application/json',
           ...(token ? {Authorization: `Bearer ${token}`} : {}),
+          // ⚠️ Content-Type manually सेट करू नये — RN fetch स्वतः multipart boundary टाकतो
         },
-        body: JSON.stringify(payload),
+        body: fd as any,
       });
       const data = await res.json();
+
+    
       if (data.success) {
         const fs = data.finalstatus;
         const msg =
@@ -736,6 +841,33 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
   editable={false}
 />
 
+<View style={ms.divider}>
+  <Text style={ms.dividerText}>OFFICER UPLOADS (OPTIONAL)</Text>
+  <View style={ms.dividerLine} />
+</View>
+
+<View style={ms.uploadRow}>
+  <TouchableOpacity style={ms.uploadBox} onPress={() => pickImage('officerPhoto')}>
+    <Text style={ms.uploadIcon}>📷</Text>
+    <Text style={ms.uploadLabel}>Photo</Text>
+    {rv.officerPhoto && <Text style={ms.uploadFileName} numberOfLines={1}>✓ {rv.officerPhoto.name}</Text>}
+  </TouchableOpacity>
+
+  <TouchableOpacity style={ms.uploadBox} onPress={pickDocument}>
+    <Text style={ms.uploadIcon}>📄</Text>
+    <Text style={ms.uploadLabel}>Document</Text>
+    {rv.officerDocument && <Text style={ms.uploadFileName} numberOfLines={1}>✓ {rv.officerDocument.name}</Text>}
+  </TouchableOpacity>
+
+  <TouchableOpacity style={ms.uploadBox} onPress={() => pickImage('officerSignature')}>
+    <Text style={ms.uploadIcon}>✍️</Text>
+    <Text style={ms.uploadLabel}>Signature</Text>
+    {rv.officerSignature && <Text style={ms.uploadFileName} numberOfLines={1}>✓ {rv.officerSignature.name}</Text>}
+  </TouchableOpacity>
+</View>
+
+
+
               <View style={ms.divider}>
                 <Text style={ms.dividerText}>QUESTION REVIEW</Text>
                 <View style={ms.dividerLine} />
@@ -995,4 +1127,13 @@ textInputDisabled: {backgroundColor: 'rgba(44,61,131,0.04)', color: 'rgba(44,61,
   submitBtnReject:  {backgroundColor: '#e53e3e'},
   submitBtnDisabled:{opacity: 0.5},
   submitBtnText:    {color: '#fff', fontSize: 14, fontWeight: '700'},
+
+  uploadRow: {flexDirection: 'row', gap: 8, marginBottom: 14},
+uploadBox: {
+  flex: 1, borderWidth: 1.5, borderColor: 'rgba(44,61,131,0.15)',
+  borderRadius: 12, padding: 12, alignItems: 'center', backgroundColor: '#fff',
+},
+uploadIcon:     {fontSize: 20, marginBottom: 4},
+uploadLabel:    {fontSize: 11, fontWeight: '700', color: BLUE_DEEP},
+uploadFileName: {fontSize: 9.5, color: '#15803d', marginTop: 4, fontWeight: '600', maxWidth: 90},
 });
