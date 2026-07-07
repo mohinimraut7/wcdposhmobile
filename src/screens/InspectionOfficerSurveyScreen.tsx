@@ -9,7 +9,8 @@ import Geolocation from '@react-native-community/geolocation';
 import poshQuestions from '../data/Poshqquestionsdata';
 import {API_BASE} from '../config';
 import {launchImageLibrary} from 'react-native-image-picker';
-import DocumentPicker from 'react-native-document-picker';
+// import DocumentPicker from 'react-native-document-picker';
+import {pick, types, isErrorWithCode, errorCodes} from '@react-native-documents/picker';
 
 // ── Real question bank — same as web ──
 const ALL_QUESTIONS = poshQuestions.parts.flatMap(p => p.questions);
@@ -381,10 +382,32 @@ export default function InspectionOfficerSurveyScreen({navigation}: any) {
   });
 }, []);
 
+// const pickDocument = useCallback(async () => {
+//   try {
+//     const res = await DocumentPicker.pickSingle({
+//       type: [DocumentPicker.types.images, DocumentPicker.types.pdf],
+//     });
+//     setRv(p => ({
+//       ...p,
+//       officerDocument: {
+//         uri:  res.uri,
+//         type: res.type || 'application/octet-stream',
+//         name: res.name || 'document',
+//       },
+//     }));
+//   } catch (err) {
+//     if (!DocumentPicker.isCancel(err)) {
+//       Alert.alert('Error', 'Document select karnya madhe error');
+//     }
+//   }
+// }, []);
+
+
+
 const pickDocument = useCallback(async () => {
   try {
-    const res = await DocumentPicker.pickSingle({
-      type: [DocumentPicker.types.images, DocumentPicker.types.pdf],
+    const [res] = await pick({
+      type: [types.images, types.pdf],
     });
     setRv(p => ({
       ...p,
@@ -395,11 +418,15 @@ const pickDocument = useCallback(async () => {
       },
     }));
   } catch (err) {
-    if (!DocumentPicker.isCancel(err)) {
+    if (isErrorWithCode(err) && err.code === errorCodes.OPERATION_CANCELED) {
+      // user cancelled — ignore
+    } else {
       Alert.alert('Error', 'Document select karnya madhe error');
     }
   }
 }, []);
+
+
 
   // ── Submit ──
   const handleReviewSubmit = async () => {
