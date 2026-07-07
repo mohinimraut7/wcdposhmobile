@@ -3741,6 +3741,7 @@ export default function PoshSurveyScreen({navigation}: any) {
   const [submitted, setSubmitted]           = useState(false);
   const [canEdit, setCanEdit]               = useState(false);
   const [reviewStatus, setReviewStatus]     = useState<string | null>(null);
+const [finalRemark, setFinalRemark]       = useState<string | null>(null);   // ← ADD
 
   // ── Which questions were flagged non-compliant by the officer, + their comment ──
   const [editableIds, setEditableIds]           = useState<Set<number>>(new Set());
@@ -3772,7 +3773,7 @@ export default function PoshSurveyScreen({navigation}: any) {
           setSubmitted(true);
           setCanEdit(!!data.canEdit);
           setReviewStatus(data.status || null);
-
+          setFinalRemark(data.finalremark || null);   // ← ADD 
           // Prefill previous answers — needed so the final submit payload has all answers
           if (data.answers) {
             const prefilled: Record<number, 'yes' | 'no'> = {};
@@ -3941,7 +3942,7 @@ export default function PoshSurveyScreen({navigation}: any) {
         </View>
 
         <ScrollView contentContainerStyle={s.scroll}>
-          <View style={s.readOnlyBanner}>
+          {/* <View style={s.readOnlyBanner}>
             <MaterialIcons name="lock-outline" size={20} color={BLUE_DEEP} />
             <Text style={s.readOnlyBannerText}>
               {reviewStatus === 'compiled'
@@ -3952,7 +3953,40 @@ export default function PoshSurveyScreen({navigation}: any) {
                     ? 'Your survey has already been submitted and is awaiting Inspection Officer review. It cannot be edited right now.'
                     : 'तुमचे सर्वेक्षण आधीच सबमिट झाले आहे आणि निरीक्षण अधिकाऱ्याच्या पुनरावलोकनाच्या प्रतीक्षेत आहे. सध्या ते संपादित करता येणार नाही.')}
             </Text>
-          </View>
+          </View> */}
+
+          <View style={[s.readOnlyBanner, reviewStatus === 'rejected' && s.rejectBanner]}>
+  <MaterialIcons
+    name="lock-outline"
+    size={20}
+    color={reviewStatus === 'rejected' ? '#b91c1c' : BLUE_DEEP}
+  />
+  <Text style={[s.readOnlyBannerText, reviewStatus === 'rejected' && s.rejectBannerText]}>
+    {reviewStatus === 'compiled'
+      ? (lang === 'en'
+          ? 'Your survey has been approved. This is a view-only copy.'
+          : 'तुमचे सर्वेक्षण मंजूर झाले आहे. ही फक्त पाहण्यासाठीची प्रत आहे.')
+      : reviewStatus === 'rejected'
+      ? (lang === 'en'
+          ? 'Your survey has been PERMANENTLY REJECTED after re-inspection. It cannot be edited or resubmitted.'
+          : 'पुनर्तपासणीनंतर तुमचे सर्वेक्षण कायमचे नाकारले गेले आहे. ते संपादित किंवा पुन्हा सबमिट करता येणार नाही.')
+      : (lang === 'en'
+          ? 'Your survey has already been submitted and is awaiting Inspection Officer review. It cannot be edited right now.'
+          : 'तुमचे सर्वेक्षण आधीच सबमिट झाले आहे आणि निरीक्षण अधिकाऱ्याच्या पुनरावलोकनाच्या प्रतीक्षेत आहे. सध्या ते संपादित करता येणार नाही.')}
+  </Text>
+</View>
+
+{reviewStatus === 'rejected' && finalRemark && (
+  <View style={s.rejectReasonBox}>
+    <MaterialIcons name="error-outline" size={18} color="#b91c1c" />
+    <Text style={s.rejectReasonText}>
+      <Text style={{fontWeight: '800'}}>
+        {lang === 'en' ? 'Reason: ' : 'कारण: '}
+      </Text>
+      {finalRemark}
+    </Text>
+  </View>
+)}
 
           <View style={s.card}>
             {POSH_QUESTIONS.parts.map((part: any, pIdx: number) => (
@@ -4492,6 +4526,33 @@ const s = StyleSheet.create({
 
   readOnlyBanner: {flexDirection: 'row', gap: 10, alignItems: 'flex-start', backgroundColor: 'rgba(44,61,131,0.06)', borderRadius: 14, padding: 14, marginBottom: 16, borderLeftWidth: 3, borderLeftColor: BLUE},
   readOnlyBannerText: {flex: 1, fontSize: 12.5, color: BLUE_DEEP, lineHeight: 18, fontWeight: '600'},
+
+rejectBanner: {
+  backgroundColor: '#fee2e2',
+  borderLeftColor: '#dc2626',
+},
+rejectBannerText: {
+  color: '#b91c1c',
+},
+rejectReasonBox: {
+  flexDirection: 'row',
+  gap: 8,
+  alignItems: 'flex-start',
+  backgroundColor: '#fee2e2',
+  borderRadius: 12,
+  padding: 12,
+  marginBottom: 16,
+  marginTop: -8,
+  borderLeftWidth: 3,
+  borderLeftColor: '#dc2626',
+},
+rejectReasonText: {
+  flex: 1,
+  fontSize: 12.5,
+  color: '#b91c1c',
+  lineHeight: 18,
+  fontWeight: '600',
+},
 
   editBanner: {flexDirection: 'row', gap: 10, alignItems: 'flex-start', backgroundColor: '#fef3c7', borderRadius: 14, padding: 14, marginBottom: 16, borderLeftWidth: 3, borderLeftColor: AMBER},
   editBannerText: {flex: 1, fontSize: 12.5, color: '#92400e', lineHeight: 18, fontWeight: '600'},
