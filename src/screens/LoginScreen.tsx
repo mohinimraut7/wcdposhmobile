@@ -2,8 +2,9 @@ import React, {useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   View, Text, TextInput, TouchableOpacity, StyleSheet,
-  ScrollView, SafeAreaView, StatusBar, ActivityIndicator, Alert,
+  ScrollView, SafeAreaView, StatusBar, ActivityIndicator, Alert,Image
 } from 'react-native';
+import wcdLogo from '../assets/wcdlogo.jpeg';
 
 const API_BASE  = 'https://mahaposhact.saavi.co.in/api';
 const PINK      = '#CD366B';
