@@ -13,7 +13,9 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  Image
 } from 'react-native';
+import wcdLogo from '../assets/wcdlogo.jpeg';
 
 const API_BASE = 'https://mahaposhact.saavi.co.in/api/org';
 
@@ -79,6 +81,24 @@ const MH_DISTRICT_TALUKAS: Record<string, string[]> = {
   'Yavatmal': ['Yavatmal','Arni','Babulgaon','Darwha','Digras','Ghatanji','Kalamb','Kelapur','Mahagaon','Maregaon','Ner','Pusad','Ralegaon','Umarkhed','Wani','Zari Jamani'],
 };
 
+// ── PAN / GST / TAN validation ──
+const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+const GST_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
+const TAN_REGEX = /^[A-Z]{4}[0-9]{5}[A-Z]{1}$/;
+
+const REGNO_MAXLEN: Record<string, number> = {GST: 15, PAN: 10, TAN: 10};
+
+function validateRegNo(type: string, value: string): string {
+  if (!value) return '';
+  if (type === 'GST' && !GST_REGEX.test(value)) return 'Invalid GST format (e.g. 27AAAAA0000A1Z5)';
+  if (type === 'PAN' && !PAN_REGEX.test(value)) return 'Invalid PAN format (e.g. AAAAA0000A)';
+  if (type === 'TAN' && !TAN_REGEX.test(value)) return 'Invalid TAN format (e.g. AAAA00000A)';
+  return '';
+}
+
+// ── Simple email validation ──
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 const MH_DISTRICTS = Object.keys(MH_DISTRICT_TALUKAS).sort();
 
 // ── Simple Select Component ──
@@ -113,14 +133,44 @@ function SelectField({
 }
 
 // ── Text Field Component ──
+// function InputField({
+//   label, icon, placeholder, value, onChangeText,
+//   keyboardType = 'default', maxLength, multiline = false, secureTextEntry = false,
+// }: any) {
+//   return (
+//     <View style={{marginBottom: 14}}>
+//       <Text style={fs.fieldLabel}>{label}</Text>
+//       <View style={[fs.inputWrap, multiline && {alignItems: 'flex-start'}]}>
+//         <View style={[fs.inputIcon, multiline && {paddingTop: 13}]}>
+//           <Text>{icon}</Text>
+//         </View>
+//         <TextInput
+//           style={[fs.inputText, {flex: 1}, multiline && {height: 72, textAlignVertical: 'top', paddingTop: 12}]}
+//           placeholder={placeholder}
+//           placeholderTextColor="rgba(44,61,131,0.35)"
+//           value={value}
+//           onChangeText={onChangeText}
+//           keyboardType={keyboardType}
+//           maxLength={maxLength}
+//           multiline={multiline}
+//           secureTextEntry={secureTextEntry}
+//           autoCapitalize="none"
+//         />
+//       </View>
+//     </View>
+//   );
+// }
+
+
 function InputField({
   label, icon, placeholder, value, onChangeText,
   keyboardType = 'default', maxLength, multiline = false, secureTextEntry = false,
+  error,
 }: any) {
   return (
     <View style={{marginBottom: 14}}>
       <Text style={fs.fieldLabel}>{label}</Text>
-      <View style={[fs.inputWrap, multiline && {alignItems: 'flex-start'}]}>
+      <View style={[fs.inputWrap, multiline && {alignItems: 'flex-start'}, error && fs.inputWrapError]}>
         <View style={[fs.inputIcon, multiline && {paddingTop: 13}]}>
           <Text>{icon}</Text>
         </View>
@@ -137,6 +187,7 @@ function InputField({
           autoCapitalize="none"
         />
       </View>
+      {error ? <Text style={fs.errorText}>⚠ {error}</Text> : null}
     </View>
   );
 }
@@ -159,6 +210,13 @@ export default function RegisterScreen({navigation}: any) {
     cinNumber: '', foundedYear: '', companyDescription: '', femaleEmployees: '',
   });
 
+  const [errors, setErrors] = useState({
+  registrationNumber: '',
+  gstNumber: '',
+  panNumber: '',
+  email: '',
+});
+
   const update = (key: string) => (val: string) =>
     setForm(prev => ({...prev, [key]: val}));
 
@@ -167,16 +225,69 @@ export default function RegisterScreen({navigation}: any) {
     setForm(prev => ({...prev, district, taluka: ''}));
   };
 
+
+
+const handleRegNoTypeChange = (newType: string) => {
+  setForm(prev => ({...prev, regnoType: newType, registrationNumber: ''}));
+  setErrors(prev => ({...prev, registrationNumber: ''}));
+};
+
+const handleRegistrationNumberChange = (val: string) => {
+  const maxLen = REGNO_MAXLEN[form.regnoType] || 20;
+  const upper = val.toUpperCase().slice(0, maxLen);
+  setForm(prev => ({...prev, registrationNumber: upper}));
+  setErrors(prev => ({...prev, registrationNumber: validateRegNo(form.regnoType, upper)}));
+};
+
+const handleGstChange = (val: string) => {
+  const upper = val.toUpperCase().slice(0, 15);
+  setForm(prev => ({...prev, gstNumber: upper}));
+  setErrors(prev => ({...prev, gstNumber: validateRegNo('GST', upper)}));
+};
+
+const handlePanChange = (val: string) => {
+  const upper = val.toUpperCase().slice(0, 10);
+  setForm(prev => ({...prev, panNumber: upper}));
+  setErrors(prev => ({...prev, panNumber: validateRegNo('PAN', upper)}));
+};
+
+const handleEmailChange = (val: string) => {
+  setForm(prev => ({...prev, email: val}));
+  setErrors(prev => ({...prev, email: val && !EMAIL_REGEX.test(val) ? 'Invalid email address' : ''}));
+};
+
+// ── Text-only filter (company name / contact person name) ──
+const filterTextOnly = (val: string) => val.replace(/[0-9]/g, '');
+
+
+
   // Talukas for selected district
   const talukaOptions = form.district ? (MH_DISTRICT_TALUKAS[form.district] || []) : [];
 
-  const handleNext = () => {
+  // const handleNext = () => {
+  //   if (page === 0) {
+  //     if (!form.orgtype)     { Alert.alert('Error', 'Org Type select kara'); return; }
+  //     if (!form.companyName) { Alert.alert('Error', 'Company Name bhara'); return; }
+  //     if (!form.district)    { Alert.alert('Error', 'District select kara'); return; }
+  //     setPage(1); return;
+  //   }
+
+
+const handleNext = () => {
     if (page === 0) {
       if (!form.orgtype)     { Alert.alert('Error', 'Org Type select kara'); return; }
       if (!form.companyName) { Alert.alert('Error', 'Company Name bhara'); return; }
       if (!form.district)    { Alert.alert('Error', 'District select kara'); return; }
+      const regError = validateRegNo(form.regnoType, form.registrationNumber);
+      if (form.regnoType && form.registrationNumber && regError) {
+        setErrors(prev => ({...prev, registrationNumber: regError}));
+        Alert.alert('Error', regError);
+        return;
+      }
       setPage(1); return;
     }
+
+
     if (page === 1) {
       if (!form.username)     { Alert.alert('Error', 'Username bhara'); return; }
       if (!form.contactPhone) { Alert.alert('Error', 'Mobile Number bhara'); return; }
@@ -244,13 +355,26 @@ export default function RegisterScreen({navigation}: any) {
       <StatusBar backgroundColor={BLUE_DEEP} barStyle="light-content" />
 
       {/* Top Bar */}
-      <View style={s.topbar}>
+      {/* <View style={s.topbar}>
         <TouchableOpacity
           style={s.backBtn}
           onPress={() => page > 0 ? setPage(page - 1) : navigation.goBack()}>
           <Text style={s.backText}>← {page > 0 ? 'Back' : 'Login'}</Text>
         </TouchableOpacity>
         <Text style={s.topbarTitle}>Company Registration</Text>
+        <View style={s.statusPill}>
+          <View style={s.statusDot} />
+          <Text style={s.statusText}>Online</Text>
+        </View>
+      </View> */}
+
+      <View style={s.topbar}>
+        <View style={s.topbarCenter}>
+          <View style={s.topbarIcon}>
+            <Image source={wcdLogo} style={s.topbarLogoImg} resizeMode="contain" />
+          </View>
+          <Text style={s.topbarTitle}>WCD Portal</Text>
+        </View>
         <View style={s.statusPill}>
           <View style={s.statusDot} />
           <Text style={s.statusText}>Online</Text>
@@ -349,14 +473,40 @@ export default function RegisterScreen({navigation}: any) {
                 </View>
               </View>
 
-              <InputField label="Company Name *" icon="🏢" placeholder="Registered company name" value={form.companyName} onChangeText={update('companyName')} />
+              {/* <InputField label="Company Name *" icon="🏢" placeholder="Registered company name" value={form.companyName} onChangeText={update('companyName')} /> */}
 
-              <View style={s.twoCol}>
+          <InputField label="Company Name *" icon="🏢" placeholder="Registered company name" value={form.companyName} onChangeText={t => update('companyName')(filterTextOnly(t))} />  
+            
+            
+              {/* <View style={s.twoCol}>
                 <View style={{flex: 1}}>
                   <SelectField label="Reg. Type *" icon="#️⃣" value={form.regnoType} options={REG_TYPE_OPTIONS} onSelect={update('regnoType')} />
                 </View>
                 <View style={{flex: 1}}>
                   <InputField label="Reg. Number *" icon="#️⃣" placeholder="e.g. 27AAAAA0000A1Z5" value={form.registrationNumber} onChangeText={update('registrationNumber')} />
+                </View>
+              </View> */}
+
+
+
+              <View style={s.twoCol}>
+                <View style={{flex: 1}}>
+                  <SelectField label="Reg. Type *" icon="#️⃣" value={form.regnoType} options={REG_TYPE_OPTIONS} onSelect={handleRegNoTypeChange} />
+                </View>
+                <View style={{flex: 1}}>
+                  <InputField
+                    label="Reg. Number *"
+                    icon="#️⃣"
+                    placeholder={
+                      form.regnoType === 'GST' ? '27AAAAA0000A1Z5' :
+                      form.regnoType === 'PAN' ? 'AAAAA0000A' :
+                      form.regnoType === 'TAN' ? 'AAAA00000A' :
+                      'Select type first'
+                    }
+                    value={form.registrationNumber}
+                    onChangeText={handleRegistrationNumberChange}
+                    error={errors.registrationNumber}
+                  />
                 </View>
               </View>
 
@@ -418,16 +568,25 @@ export default function RegisterScreen({navigation}: any) {
                 <Text style={s.sectionTitle}>CONTACT DETAILS</Text>
               </View>
 
-              <InputField label="Contact Person Name" icon="👤" placeholder="Full name" value={form.contactPersonName} onChangeText={update('contactPersonName')} />
+              {/* <InputField label="Contact Person Name" icon="👤" placeholder="Full name" value={form.contactPersonName} onChangeText={update('contactPersonName')} /> */}
+             
+             <InputField label="Contact Person Name" icon="👤" placeholder="Full name" value={form.contactPersonName} onChangeText={t => update('contactPersonName')(filterTextOnly(t))} />
+             
               <InputField label="Username *" icon="👤" placeholder="Choose a username" value={form.username} onChangeText={update('username')} />
 
               <View style={s.twoCol}>
                 <View style={{flex: 1}}>
                   <InputField label="Mobile Number *" icon="📱" placeholder="10 digit" value={form.contactPhone} onChangeText={t => update('contactPhone')(t.replace(/\D/g, '').slice(0, 10))} keyboardType="numeric" maxLength={10} />
                 </View>
-                <View style={{flex: 1}}>
+                {/* <View style={{flex: 1}}>
                   <InputField label="Email Address" icon="📧" placeholder="company@email.com" value={form.email} onChangeText={update('email')} keyboardType="email-address" />
+                </View> */}
+             
+             <View style={{flex: 1}}>
+                  <InputField label="Email Address" icon="📧" placeholder="company@email.com" value={form.email} onChangeText={handleEmailChange} keyboardType="email-address" error={errors.email} />
                 </View>
+             
+             
               </View>
 
               <InputField label="Password *" icon="🔒" placeholder="Create a login password" value={form.password} onChangeText={update('password')} secureTextEntry />
@@ -471,14 +630,25 @@ export default function RegisterScreen({navigation}: any) {
                 </View>
               </View>
 
-              <View style={s.twoCol}>
+              {/* <View style={s.twoCol}>
                 <View style={{flex: 1}}>
                   <InputField label="GST Number" icon="#️⃣" placeholder="27AAAAA0000A1Z5" value={form.gstNumber} onChangeText={update('gstNumber')} />
                 </View>
                 <View style={{flex: 1}}>
                   <InputField label="PAN Number" icon="#️⃣" placeholder="AAAAA0000A" value={form.panNumber} onChangeText={update('panNumber')} />
                 </View>
+              </View> */}
+
+<View style={s.twoCol}>
+                <View style={{flex: 1}}>
+                  <InputField label="GST Number" icon="#️⃣" placeholder="27AAAAA0000A1Z5" value={form.gstNumber} onChangeText={handleGstChange} error={errors.gstNumber} />
+                </View>
+                <View style={{flex: 1}}>
+                  <InputField label="PAN Number" icon="#️⃣" placeholder="AAAAA0000A" value={form.panNumber} onChangeText={handlePanChange} error={errors.panNumber} />
+                </View>
               </View>
+
+
 
               <View style={s.twoCol}>
                 <View style={{flex: 1}}>
@@ -584,6 +754,8 @@ const fs = StyleSheet.create({
   menuItemActive:{backgroundColor: 'rgba(205,54,107,0.06)'},
   menuText:      {fontSize: 13, color: '#1d2a60'},
   menuTextActive:{color: '#CD366B', fontWeight: '700'},
+  inputWrapError: {borderColor: '#ef4444'},
+errorText: {color: '#ef4444', fontSize: 11, marginTop: 5, fontWeight: '600'},
 });
 
 // ── Screen Styles ──
@@ -591,9 +763,15 @@ const s = StyleSheet.create({
   safe:   {flex: 1, backgroundColor: CREAM},
   scroll: {padding: 16, paddingBottom: 8},
 
-  topbar:      {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.08)'},
-  backBtn:     {paddingVertical: 4, paddingRight: 8},
-  backText:    {fontSize: 13, color: BLUE, fontWeight: '700'},
+  // topbar:      {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.08)'},
+  // backBtn:     {paddingVertical: 4, paddingRight: 8},
+  // backText:    {fontSize: 13, color: BLUE, fontWeight: '700'},
+
+  topbar:       {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.08)'},
+  topbarCenter: {flexDirection: 'row', alignItems: 'center', gap: 8},
+  topbarIcon:   {width: 28, height: 28, borderRadius: 7, backgroundColor: 'rgba(205,54,107,0.10)', justifyContent: 'center', alignItems: 'center', overflow: 'hidden'},
+  topbarLogoImg:{width: 20, height: 20},
+  
   topbarTitle: {fontSize: 14, fontWeight: '700', color: BLUE_DEEP},
   statusPill:  {flexDirection: 'row', alignItems: 'center', gap: 5},
   statusDot:   {width: 7, height: 7, borderRadius: 4, backgroundColor: PINK},
