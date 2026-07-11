@@ -12,7 +12,10 @@ import {
   StatusBar,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
+
+import wcdLogo from '../assets/wcdlogo.jpeg';
 
 const API_BASE = 'https://mahaposhact.saavi.co.in/api/org';
 
@@ -138,7 +141,9 @@ export default function CompanyLoginScreen({navigation}: any) {
           <Text style={s.backText}>← Back</Text>
         </TouchableOpacity>
         <View style={s.topbarCenter}>
-          <View style={s.topbarIcon}><Text style={{fontSize: 14}}>🛡</Text></View>
+          <View style={s.topbarIcon}>
+            <Image source={wcdLogo} style={s.topbarLogoImg} resizeMode="contain" />
+          </View>
           <Text style={s.topbarTitle}>WCD Portal</Text>
         </View>
         <View style={s.statusPill}>
@@ -386,6 +391,7 @@ const s = StyleSheet.create({
   backText:     {fontSize: 13, color: BLUE, fontWeight: '700'},
   topbarCenter: {flexDirection: 'row', alignItems: 'center', gap: 8},
   topbarIcon:   {width: 28, height: 28, borderRadius: 7, backgroundColor: 'rgba(205,54,107,0.10)', justifyContent: 'center', alignItems: 'center'},
+  topbarLogoImg:{width: 20, height: 20},
   topbarTitle:  {fontSize: 14, fontWeight: '700', color: BLUE_DEEP},
   statusPill:   {flexDirection: 'row', alignItems: 'center', gap: 5},
   statusDot:    {width: 7, height: 7, borderRadius: 4, backgroundColor: PINK},
