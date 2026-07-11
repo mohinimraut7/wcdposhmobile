@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -16,6 +17,10 @@ import {
   Image
 } from 'react-native';
 import wcdLogo from '../assets/wcdlogo.jpeg';
+import mshasan from '../assets/maharashtrashasan.jfif';
+
+import satya from '../assets/satya.png';
+
 
 const API_BASE = 'https://mahaposhact.saavi.co.in/api/org';
 

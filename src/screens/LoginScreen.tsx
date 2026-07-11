@@ -109,7 +109,12 @@ export default function LoginScreen({navigation}: any) {
       {/* Top Bar */}
       <View style={s.topbar}>
         <View style={s.topbarLeft}>
-          <View style={s.topbarIcon}><Text style={s.topbarIconText}>🛡</Text></View>
+
+
+          
+          <View style={s.topbarIcon}><Text style={s.topbarIconText}> 
+            <Image source={wcdLogo} style={s.topbarLogoImg} resizeMode="contain" />
+            </Text></View>
           <View>
             <Text style={s.topbarTitle}>Government of Maharashtra</Text>
             <Text style={s.topbarSub}>Women &amp; Child Development</Text>
@@ -351,6 +356,7 @@ const s = StyleSheet.create({
   statusPill:     {flexDirection: 'row', alignItems: 'center', gap: 5},
   statusDot:      {width: 7, height: 7, borderRadius: 4, backgroundColor: PINK},
   statusText:     {fontSize: 12, fontWeight: '600', color: PINK},
+  topbarLogoImg:{width: 20, height: 20},
 
   card:        {backgroundColor: '#fff', borderRadius: 20, borderTopWidth: 4, borderTopColor: PINK, padding: 22, marginBottom: 16, shadowColor: BLUE, shadowOffset: {width: 0, height: 8}, shadowOpacity: 0.08, shadowRadius: 20, elevation: 4},
 

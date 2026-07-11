@@ -7,6 +7,8 @@ import RegisterScreen from './src/screens/RegisterScreen';
 import PoshSurveyScreen from './src/screens/PoshSurveyScreen';
 import CompanyLoginScreen from './src/screens/CompanyLoginScreen';
 import InspectionOfficerSurveyScreen from './src/screens/InspectionOfficerSurveyScreen';
+import AppSelectionScreen from './src/screens/AppSelectionScreen';
+
 
 const Stack = createNativeStackNavigator();
 
@@ -14,9 +16,14 @@ const App = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="CompanyLogin"
+        // initialRouteName="CompanyLogin"
+                initialRouteName="AppSelection"
+
+        
         screenOptions={{headerShown: false}}>
         {/* Admin/Officer Login */}
+        
+<Stack.Screen name="AppSelection" component={AppSelectionScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={LoginScreen} />
 
         {/* Inspection Officer → Surveys Dashboard */}

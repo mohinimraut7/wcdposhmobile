@@ -17,6 +17,10 @@ import {
 
 import wcdLogo from '../assets/wcdlogo.jpeg';
 
+// import mshasan from '../assets/maharashtrashasan.jfif';
+
+import satya from '../assets/satya.png';
+
 const API_BASE = 'https://mahaposhact.saavi.co.in/api/org';
 
 const PINK      = '#CD366B';
@@ -137,9 +141,9 @@ export default function CompanyLoginScreen({navigation}: any) {
 
       {/* Top Bar */}
       <View style={s.topbar}>
-        <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
+        {/* <TouchableOpacity style={s.backBtn} onPress={() => navigation.goBack()}>
           <Text style={s.backText}>← Back</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <View style={s.topbarCenter}>
           <View style={s.topbarIcon}>
             <Image source={wcdLogo} style={s.topbarLogoImg} resizeMode="contain" />
@@ -157,8 +161,11 @@ export default function CompanyLoginScreen({navigation}: any) {
           {/* ── Info Card ── */}
         <View style={s.infoCard}>
           <View style={s.badgeRow}>
-            <View style={s.logoBadge}><Text style={{fontSize: 22}}>🛡</Text></View>
-            <View style={s.logoBadge}><Text style={{fontSize: 22}}>⭐</Text></View>
+            <View style={s.logoBadge}><Text style={{fontSize: 22}}>   
+               <Image source={wcdLogo } style={s.topbarLogoImg} resizeMode="contain" /></Text></View>
+            <View style={s.logoBadge}><Text style={{fontSize: 22}}>
+                  <Image source={satya} style={s.topbarLogoImg} resizeMode="contain" />
+              </Text></View>
           </View>
           <Text style={s.infoTitle}>Company Portal</Text>
           <Text style={s.infoSub}>Maharashtra WCD</Text>
