@@ -1,5 +1,5 @@
 
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import {
@@ -19,15 +19,15 @@ import wcdLogo from '../assets/wcdlogo.jpeg';
 
 const API_BASE = 'https://mahaposhact.saavi.co.in/api/org';
 
-const PINK      = '#CD366B';
+const PINK = '#CD366B';
 const PINK_DARK = '#b82a5c';
-const BLUE      = '#2C3D83';
+const BLUE = '#2C3D83';
 const BLUE_DEEP = '#1d2a60';
-const CREAM     = '#FBF3EE';
+const CREAM = '#FBF3EE';
 
-const ORG_TYPE_OPTIONS = ['Private','Government','Semi-Government','NGO','Trust','Other'];
-const INDUSTRY_OPTIONS = ['Manufacturing','IT / Software','Healthcare','Education','Retail','Construction','Finance & Banking','Hospitality','Other'];
-const REG_TYPE_OPTIONS = ['GST','PAN','TAN'];
+const ORG_TYPE_OPTIONS = ['Private', 'Government', 'Semi-Government', 'NGO', 'Trust', 'Other'];
+const INDUSTRY_OPTIONS = ['Manufacturing', 'IT / Software', 'Healthcare', 'Education', 'Retail', 'Construction', 'Finance & Banking', 'Hospitality', 'Other'];
+const REG_TYPE_OPTIONS = ['GST', 'PAN', 'TAN'];
 
 const ORG_TYPE_DB_MAP: Record<string, string> = {
   'Private': 'private', 'Government': 'government',
@@ -36,49 +36,49 @@ const ORG_TYPE_DB_MAP: Record<string, string> = {
 };
 
 const PAGE_TITLES = [
-  {title: 'Company & Location', sub: 'Basic company information and address'},
-  {title: 'Contact & POSH',    sub: 'Contact person and POSH compliance details'},
-  {title: 'Company Profile',   sub: 'Additional profile details (optional)'},
+  { title: 'Company & Location', sub: 'Basic company information and address' },
+  { title: 'Contact & POSH', sub: 'Contact person and POSH compliance details' },
+  { title: 'Company Profile', sub: 'Additional profile details (optional)' },
 ];
 
 // ── Maharashtra Districts & Talukas ──
 const MH_DISTRICT_TALUKAS: Record<string, string[]> = {
-  'Ahmednagar': ['Ahmednagar','Akole','Jamkhed','Karjat','Kopargaon','Nagar','Nevasa','Parner','Pathardi','Rahata','Rahuri','Sangamner','Shevgaon','Shrigonda','Shrirampur'],
-  'Akola': ['Akola','Akot','Balapur','Barshitakli','Murtizapur','Patur','Telhara'],
-  'Amravati': ['Amravati','Achalpur','Anjangaon Surji','Chandur Bazar','Chandur Railway','Chikhaldara','Daryapur','Dhamangaon Railway','Morshi','Nandgaon Khandeshwar','Teosa','Warud'],
-  'Aurangabad': ['Aurangabad','Gangapur','Kannad','Khuldabad','Paithan','Phulambri','Silllod','Soegaon','Vaijapur'],
-  'Beed': ['Beed','Ambajogai','Ashti','Dharur','Georai','Kaij','Majalgaon','Parli','Patoda','Shirur Kasar','Wadwani'],
-  'Bhandara': ['Bhandara','Lakhandur','Lakhani','Mohadi','Pauni','Sakoli','Tumsar'],
-  'Buldhana': ['Buldhana','Chikhli','Deulgaon Raja','Jalgaon Jamod','Khamgaon','Lonar','Malkapur','Mehkar','Motala','Nandura','Sangrampur','Shegaon','Sindkhed Raja'],
-  'Chandrapur': ['Chandrapur','Ballarpur','Bhadravati','Brahmapuri','Chimur','Gondpipri','Jiwati','Korpana','Mul','Nagbhid','Pombhurna','Rajura','Saoli','Sindewahi','Warora'],
-  'Dhule': ['Dhule','Sakri','Shirpur','Sindkheda'],
-  'Gadchiroli': ['Gadchiroli','Aheri','Armori','Bhamragad','Chamorshi','Corpana','Dhanora','Desaiganj','Etapalli','Kurkheda','Mulchera','Sironcha'],
-  'Gondia': ['Gondia','Amgaon','Arjuni Morgaon','Deori','Goregaon','Salekasa','Sadak Arjuni','Tirora'],
-  'Hingoli': ['Hingoli','Aundha Nagnath','Basmath','Kalamnuri','Sengaon'],
-  'Jalgaon': ['Jalgaon','Amalner','Bhadgaon','Bhusawal','Bodwad','Chalisgaon','Chopda','Dharangaon','Erandol','Jamner','Muktainagar','Pachora','Parola','Raver','Yawal'],
-  'Jalna': ['Jalna','Ambad','Badnapur','Bhokardan','Ghansawangi','Jafrabad','Mantha','Partur'],
-  'Kolhapur': ['Kolhapur','Ajra','Bavda','Bhudargad','Chandgad','Gadhinglaj','Hatkanangle','Kagal','Karvir','Panhala','Radhanagari','Shahuwadi','Shirol'],
-  'Latur': ['Latur','Ahmadpur','Ausa','Chakur','Deoni','Jalkot','Nilanga','Renapur','Shirur Anantpal','Udgir'],
+  'Ahmednagar': ['Ahmednagar', 'Akole', 'Jamkhed', 'Karjat', 'Kopargaon', 'Nagar', 'Nevasa', 'Parner', 'Pathardi', 'Rahata', 'Rahuri', 'Sangamner', 'Shevgaon', 'Shrigonda', 'Shrirampur'],
+  'Akola': ['Akola', 'Akot', 'Balapur', 'Barshitakli', 'Murtizapur', 'Patur', 'Telhara'],
+  'Amravati': ['Amravati', 'Achalpur', 'Anjangaon Surji', 'Chandur Bazar', 'Chandur Railway', 'Chikhaldara', 'Daryapur', 'Dhamangaon Railway', 'Morshi', 'Nandgaon Khandeshwar', 'Teosa', 'Warud'],
+  'Aurangabad': ['Aurangabad', 'Gangapur', 'Kannad', 'Khuldabad', 'Paithan', 'Phulambri', 'Silllod', 'Soegaon', 'Vaijapur'],
+  'Beed': ['Beed', 'Ambajogai', 'Ashti', 'Dharur', 'Georai', 'Kaij', 'Majalgaon', 'Parli', 'Patoda', 'Shirur Kasar', 'Wadwani'],
+  'Bhandara': ['Bhandara', 'Lakhandur', 'Lakhani', 'Mohadi', 'Pauni', 'Sakoli', 'Tumsar'],
+  'Buldhana': ['Buldhana', 'Chikhli', 'Deulgaon Raja', 'Jalgaon Jamod', 'Khamgaon', 'Lonar', 'Malkapur', 'Mehkar', 'Motala', 'Nandura', 'Sangrampur', 'Shegaon', 'Sindkhed Raja'],
+  'Chandrapur': ['Chandrapur', 'Ballarpur', 'Bhadravati', 'Brahmapuri', 'Chimur', 'Gondpipri', 'Jiwati', 'Korpana', 'Mul', 'Nagbhid', 'Pombhurna', 'Rajura', 'Saoli', 'Sindewahi', 'Warora'],
+  'Dhule': ['Dhule', 'Sakri', 'Shirpur', 'Sindkheda'],
+  'Gadchiroli': ['Gadchiroli', 'Aheri', 'Armori', 'Bhamragad', 'Chamorshi', 'Corpana', 'Dhanora', 'Desaiganj', 'Etapalli', 'Kurkheda', 'Mulchera', 'Sironcha'],
+  'Gondia': ['Gondia', 'Amgaon', 'Arjuni Morgaon', 'Deori', 'Goregaon', 'Salekasa', 'Sadak Arjuni', 'Tirora'],
+  'Hingoli': ['Hingoli', 'Aundha Nagnath', 'Basmath', 'Kalamnuri', 'Sengaon'],
+  'Jalgaon': ['Jalgaon', 'Amalner', 'Bhadgaon', 'Bhusawal', 'Bodwad', 'Chalisgaon', 'Chopda', 'Dharangaon', 'Erandol', 'Jamner', 'Muktainagar', 'Pachora', 'Parola', 'Raver', 'Yawal'],
+  'Jalna': ['Jalna', 'Ambad', 'Badnapur', 'Bhokardan', 'Ghansawangi', 'Jafrabad', 'Mantha', 'Partur'],
+  'Kolhapur': ['Kolhapur', 'Ajra', 'Bavda', 'Bhudargad', 'Chandgad', 'Gadhinglaj', 'Hatkanangle', 'Kagal', 'Karvir', 'Panhala', 'Radhanagari', 'Shahuwadi', 'Shirol'],
+  'Latur': ['Latur', 'Ahmadpur', 'Ausa', 'Chakur', 'Deoni', 'Jalkot', 'Nilanga', 'Renapur', 'Shirur Anantpal', 'Udgir'],
   'Mumbai City': ['Mumbai City'],
-  'Mumbai Suburban': ['Andheri','Borivali','Kurla'],
-  'Nagpur': ['Nagpur','Bhiwapur','Hingna','Kalameshwar','Kamptee','Katol','Kuhi','Mauda','Mohadi','Narkhed','Parseoni','Ramtek','Savner','Umred'],
-  'Nanded': ['Nanded','Ardhapur','Bhokar','Biloli','Deglur','Dharmabad','Hadgaon','Himayatnagar','Kandhar','Kinwat','Loha','Mahur','Mudkhed','Mukhed','Naigaon','Umri'],
-  'Nandurbar': ['Nandurbar','Akkalkuwa','Akrani','Nawapur','Shahada','Taloda'],
-  'Nashik': ['Nashik','Baglan','Chandwad','Deola','Dindori','Igatpuri','Kalwan','Malegaon','Nandgaon','Niphad','Peint','Sinnar','Surgana','Trimbakeshwar','Yeola'],
-  'Osmanabad': ['Osmanabad','Bhoom','Kalamb','Lohara','Paranda','Tuljapur','Umarga','Washi'],
-  'Palghar': ['Palghar','Dahanu','Jawhar','Mokhada','Talasari','Vasai','Vikramgad','Wada'],
-  'Parbhani': ['Parbhani','Gangakhed','Jintur','Manwath','Palam','Pathri','Purna','Sailu','Selu','Sonpeth'],
-  'Pune': ['Pune City','Ambegaon','Baramati','Bhor','Daund','Haveli','Indapur','Junnar','Khed','Maval','Mulshi','Purandar','Shirur','Velhe'],
-  'Raigad': ['Alibag','Karjat','Khalapur','Mahad','Mangaon','Mhasla','Murud','Panvel','Pen','Poladpur','Roha','Shrivardhan','Sudhagad','Tala','Uran'],
-  'Ratnagiri': ['Ratnagiri','Chiplun','Dapoli','Guhagar','Khed','Lanja','Mandangad','Rajapur','Sangameshwar'],
-  'Sangli': ['Sangli','Atpadi','Jat','Kadegaon','Kavathemahankal','Khanapur','Miraj','Palus','Shirala','Tasgaon','Valva'],
-  'Satara': ['Satara','Jaoli','Karad','Khandala','Khatav','Koregaon','Mahabaleshwar','Man','Patan','Phaltan','Wai'],
-  'Sindhudurg': ['Sindhudurg','Devgad','Dodamarg','Kankavli','Kudal','Malvan','Sawantwadi','Vaibhavwadi','Vengurla'],
-  'Solapur': ['Solapur North','Solapur South','Akkalkot','Barshi','Karmala','Madha','Malshiras','Mangalvedhe','Mohol','Pandharpur','Sangola','South Solapur'],
-  'Thane': ['Thane','Ambarnath','Bhiwandi','Kalyan','Murbad','Shahapur','Ulhasnagar'],
-  'Wardha': ['Wardha','Arvi','Ashti','Deoli','Hinganghat','Karanja','Samudrapur','Seloo'],
-  'Washim': ['Washim','Malegaon','Mangrulpir','Manora','Risod','Karanja'],
-  'Yavatmal': ['Yavatmal','Arni','Babulgaon','Darwha','Digras','Ghatanji','Kalamb','Kelapur','Mahagaon','Maregaon','Ner','Pusad','Ralegaon','Umarkhed','Wani','Zari Jamani'],
+  'Mumbai Suburban': ['Andheri', 'Borivali', 'Kurla'],
+  'Nagpur': ['Nagpur', 'Bhiwapur', 'Hingna', 'Kalameshwar', 'Kamptee', 'Katol', 'Kuhi', 'Mauda', 'Mohadi', 'Narkhed', 'Parseoni', 'Ramtek', 'Savner', 'Umred'],
+  'Nanded': ['Nanded', 'Ardhapur', 'Bhokar', 'Biloli', 'Deglur', 'Dharmabad', 'Hadgaon', 'Himayatnagar', 'Kandhar', 'Kinwat', 'Loha', 'Mahur', 'Mudkhed', 'Mukhed', 'Naigaon', 'Umri'],
+  'Nandurbar': ['Nandurbar', 'Akkalkuwa', 'Akrani', 'Nawapur', 'Shahada', 'Taloda'],
+  'Nashik': ['Nashik', 'Baglan', 'Chandwad', 'Deola', 'Dindori', 'Igatpuri', 'Kalwan', 'Malegaon', 'Nandgaon', 'Niphad', 'Peint', 'Sinnar', 'Surgana', 'Trimbakeshwar', 'Yeola'],
+  'Osmanabad': ['Osmanabad', 'Bhoom', 'Kalamb', 'Lohara', 'Paranda', 'Tuljapur', 'Umarga', 'Washi'],
+  'Palghar': ['Palghar', 'Dahanu', 'Jawhar', 'Mokhada', 'Talasari', 'Vasai', 'Vikramgad', 'Wada'],
+  'Parbhani': ['Parbhani', 'Gangakhed', 'Jintur', 'Manwath', 'Palam', 'Pathri', 'Purna', 'Sailu', 'Selu', 'Sonpeth'],
+  'Pune': ['Pune City', 'Ambegaon', 'Baramati', 'Bhor', 'Daund', 'Haveli', 'Indapur', 'Junnar', 'Khed', 'Maval', 'Mulshi', 'Purandar', 'Shirur', 'Velhe'],
+  'Raigad': ['Alibag', 'Karjat', 'Khalapur', 'Mahad', 'Mangaon', 'Mhasla', 'Murud', 'Panvel', 'Pen', 'Poladpur', 'Roha', 'Shrivardhan', 'Sudhagad', 'Tala', 'Uran'],
+  'Ratnagiri': ['Ratnagiri', 'Chiplun', 'Dapoli', 'Guhagar', 'Khed', 'Lanja', 'Mandangad', 'Rajapur', 'Sangameshwar'],
+  'Sangli': ['Sangli', 'Atpadi', 'Jat', 'Kadegaon', 'Kavathemahankal', 'Khanapur', 'Miraj', 'Palus', 'Shirala', 'Tasgaon', 'Valva'],
+  'Satara': ['Satara', 'Jaoli', 'Karad', 'Khandala', 'Khatav', 'Koregaon', 'Mahabaleshwar', 'Man', 'Patan', 'Phaltan', 'Wai'],
+  'Sindhudurg': ['Sindhudurg', 'Devgad', 'Dodamarg', 'Kankavli', 'Kudal', 'Malvan', 'Sawantwadi', 'Vaibhavwadi', 'Vengurla'],
+  'Solapur': ['Solapur North', 'Solapur South', 'Akkalkot', 'Barshi', 'Karmala', 'Madha', 'Malshiras', 'Mangalvedhe', 'Mohol', 'Pandharpur', 'Sangola', 'South Solapur'],
+  'Thane': ['Thane', 'Ambarnath', 'Bhiwandi', 'Kalyan', 'Murbad', 'Shahapur', 'Ulhasnagar'],
+  'Wardha': ['Wardha', 'Arvi', 'Ashti', 'Deoli', 'Hinganghat', 'Karanja', 'Samudrapur', 'Seloo'],
+  'Washim': ['Washim', 'Malegaon', 'Mangrulpir', 'Manora', 'Risod', 'Karanja'],
+  'Yavatmal': ['Yavatmal', 'Arni', 'Babulgaon', 'Darwha', 'Digras', 'Ghatanji', 'Kalamb', 'Kelapur', 'Mahagaon', 'Maregaon', 'Ner', 'Pusad', 'Ralegaon', 'Umarkhed', 'Wani', 'Zari Jamani'],
 };
 
 // ── PAN / GST / TAN validation ──
@@ -86,7 +86,7 @@ const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
 const GST_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 const TAN_REGEX = /^[A-Z]{4}[0-9]{5}[A-Z]{1}$/;
 
-const REGNO_MAXLEN: Record<string, number> = {GST: 15, PAN: 10, TAN: 10};
+const REGNO_MAXLEN: Record<string, number> = { GST: 15, PAN: 10, TAN: 10 };
 
 function validateRegNo(type: string, value: string): string {
   if (!value) return '';
@@ -104,15 +104,15 @@ const MH_DISTRICTS = Object.keys(MH_DISTRICT_TALUKAS).sort();
 // ── Simple Select Component ──
 function SelectField({
   label, icon, value, options, onSelect,
-}: {label: string; icon: string; value: string; options: string[]; onSelect: (v: string) => void}) {
+}: { label: string; icon: string; value: string; options: string[]; onSelect: (v: string) => void }) {
   const [open, setOpen] = useState(false);
   return (
-    <View style={{marginBottom: 14}}>
+    <View style={{ marginBottom: 14 }}>
       <Text style={fs.fieldLabel}>{label}</Text>
       <TouchableOpacity style={fs.inputWrap} onPress={() => setOpen(!open)}>
         <View style={fs.inputIcon}><Text>{icon}</Text></View>
-        <Text style={[fs.inputText, !value && {color: 'rgba(44,61,131,0.35)'}]} numberOfLines={1}>
-          {value || `Select ${label.replace(' *','')}`}
+        <Text style={[fs.inputText, !value && { color: 'rgba(44,61,131,0.35)' }]} numberOfLines={1}>
+          {value || `Select ${label.replace(' *', '')}`}
         </Text>
         <Text style={fs.arrow}>{open ? '▲' : '▼'}</Text>
       </TouchableOpacity>
@@ -122,7 +122,7 @@ function SelectField({
             <TouchableOpacity
               key={o}
               style={[fs.menuItem, value === o && fs.menuItemActive]}
-              onPress={() => {onSelect(o); setOpen(false);}}>
+              onPress={() => { onSelect(o); setOpen(false); }}>
               <Text style={[fs.menuText, value === o && fs.menuTextActive]}>{o}</Text>
             </TouchableOpacity>
           ))}
@@ -168,14 +168,14 @@ function InputField({
   error,
 }: any) {
   return (
-    <View style={{marginBottom: 14}}>
+    <View style={{ marginBottom: 14 }}>
       <Text style={fs.fieldLabel}>{label}</Text>
-      <View style={[fs.inputWrap, multiline && {alignItems: 'flex-start'}, error && fs.inputWrapError]}>
-        <View style={[fs.inputIcon, multiline && {paddingTop: 13}]}>
+      <View style={[fs.inputWrap, multiline && { alignItems: 'flex-start' }, error && fs.inputWrapError]}>
+        <View style={[fs.inputIcon, multiline && { paddingTop: 13 }]}>
           <Text>{icon}</Text>
         </View>
         <TextInput
-          style={[fs.inputText, {flex: 1}, multiline && {height: 72, textAlignVertical: 'top', paddingTop: 12}]}
+          style={[fs.inputText, { flex: 1 }, multiline && { height: 72, textAlignVertical: 'top', paddingTop: 12 }]}
           placeholder={placeholder}
           placeholderTextColor="rgba(44,61,131,0.35)"
           value={value}
@@ -192,8 +192,8 @@ function InputField({
   );
 }
 
-export default function RegisterScreen({navigation}: any) {
-  const [page, setPage]       = useState(0);
+export default function RegisterScreen({ navigation }: any) {
+  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
 
   const [form, setForm] = useState({
@@ -211,53 +211,53 @@ export default function RegisterScreen({navigation}: any) {
   });
 
   const [errors, setErrors] = useState({
-  registrationNumber: '',
-  gstNumber: '',
-  panNumber: '',
-  email: '',
-});
+    registrationNumber: '',
+    gstNumber: '',
+    panNumber: '',
+    email: '',
+  });
 
   const update = (key: string) => (val: string) =>
-    setForm(prev => ({...prev, [key]: val}));
+    setForm(prev => ({ ...prev, [key]: val }));
 
   // District change → taluka reset
   const handleDistrictChange = (district: string) => {
-    setForm(prev => ({...prev, district, taluka: ''}));
+    setForm(prev => ({ ...prev, district, taluka: '' }));
   };
 
 
 
-const handleRegNoTypeChange = (newType: string) => {
-  setForm(prev => ({...prev, regnoType: newType, registrationNumber: ''}));
-  setErrors(prev => ({...prev, registrationNumber: ''}));
-};
+  const handleRegNoTypeChange = (newType: string) => {
+    setForm(prev => ({ ...prev, regnoType: newType, registrationNumber: '' }));
+    setErrors(prev => ({ ...prev, registrationNumber: '' }));
+  };
 
-const handleRegistrationNumberChange = (val: string) => {
-  const maxLen = REGNO_MAXLEN[form.regnoType] || 20;
-  const upper = val.toUpperCase().slice(0, maxLen);
-  setForm(prev => ({...prev, registrationNumber: upper}));
-  setErrors(prev => ({...prev, registrationNumber: validateRegNo(form.regnoType, upper)}));
-};
+  const handleRegistrationNumberChange = (val: string) => {
+    const maxLen = REGNO_MAXLEN[form.regnoType] || 20;
+    const upper = val.toUpperCase().slice(0, maxLen);
+    setForm(prev => ({ ...prev, registrationNumber: upper }));
+    setErrors(prev => ({ ...prev, registrationNumber: validateRegNo(form.regnoType, upper) }));
+  };
 
-const handleGstChange = (val: string) => {
-  const upper = val.toUpperCase().slice(0, 15);
-  setForm(prev => ({...prev, gstNumber: upper}));
-  setErrors(prev => ({...prev, gstNumber: validateRegNo('GST', upper)}));
-};
+  const handleGstChange = (val: string) => {
+    const upper = val.toUpperCase().slice(0, 15);
+    setForm(prev => ({ ...prev, gstNumber: upper }));
+    setErrors(prev => ({ ...prev, gstNumber: validateRegNo('GST', upper) }));
+  };
 
-const handlePanChange = (val: string) => {
-  const upper = val.toUpperCase().slice(0, 10);
-  setForm(prev => ({...prev, panNumber: upper}));
-  setErrors(prev => ({...prev, panNumber: validateRegNo('PAN', upper)}));
-};
+  const handlePanChange = (val: string) => {
+    const upper = val.toUpperCase().slice(0, 10);
+    setForm(prev => ({ ...prev, panNumber: upper }));
+    setErrors(prev => ({ ...prev, panNumber: validateRegNo('PAN', upper) }));
+  };
 
-const handleEmailChange = (val: string) => {
-  setForm(prev => ({...prev, email: val}));
-  setErrors(prev => ({...prev, email: val && !EMAIL_REGEX.test(val) ? 'Invalid email address' : ''}));
-};
+  const handleEmailChange = (val: string) => {
+    setForm(prev => ({ ...prev, email: val }));
+    setErrors(prev => ({ ...prev, email: val && !EMAIL_REGEX.test(val) ? 'Invalid email address' : '' }));
+  };
 
-// ── Text-only filter (company name / contact person name) ──
-const filterTextOnly = (val: string) => val.replace(/[0-9]/g, '');
+  // ── Text-only filter (company name / contact person name) ──
+  const filterTextOnly = (val: string) => val.replace(/[0-9]/g, '');
 
 
 
@@ -273,14 +273,14 @@ const filterTextOnly = (val: string) => val.replace(/[0-9]/g, '');
   //   }
 
 
-const handleNext = () => {
+  const handleNext = () => {
     if (page === 0) {
-      if (!form.orgtype)     { Alert.alert('Error', 'Org Type select kara'); return; }
+      if (!form.orgtype) { Alert.alert('Error', 'Org Type select kara'); return; }
       if (!form.companyName) { Alert.alert('Error', 'Company Name bhara'); return; }
-      if (!form.district)    { Alert.alert('Error', 'District select kara'); return; }
+      if (!form.district) { Alert.alert('Error', 'District select kara'); return; }
       const regError = validateRegNo(form.regnoType, form.registrationNumber);
       if (form.regnoType && form.registrationNumber && regError) {
-        setErrors(prev => ({...prev, registrationNumber: regError}));
+        setErrors(prev => ({ ...prev, registrationNumber: regError }));
         Alert.alert('Error', regError);
         return;
       }
@@ -289,9 +289,9 @@ const handleNext = () => {
 
 
     if (page === 1) {
-      if (!form.username)     { Alert.alert('Error', 'Username bhara'); return; }
+      if (!form.username) { Alert.alert('Error', 'Username bhara'); return; }
       if (!form.contactPhone) { Alert.alert('Error', 'Mobile Number bhara'); return; }
-      if (!form.password)     { Alert.alert('Error', 'Password bhara'); return; }
+      if (!form.password) { Alert.alert('Error', 'Password bhara'); return; }
       setPage(2); return;
     }
     handleSubmit();
@@ -302,30 +302,30 @@ const handleNext = () => {
     try {
       setLoading(true);
       const payload = {
-        orgtype:         ORG_TYPE_DB_MAP[form.orgtype] || 'private',
-        orgsector:       form.industryType,
-        orgname:         form.companyName.trim(),
-        orgaddress:      form.address.trim(),
-        ruralurban:      'Urban',
-        district:        form.district.trim(),
-        taluka:          form.taluka.trim(),
-        mahapalika:      '',
-        ward:            '',
-        pincode:         form.pincode.trim(),
+        orgtype: ORG_TYPE_DB_MAP[form.orgtype] || 'private',
+        orgsector: form.industryType,
+        orgname: form.companyName.trim(),
+        orgaddress: form.address.trim(),
+        ruralurban: 'Urban',
+        district: form.district.trim(),
+        taluka: form.taluka.trim(),
+        mahapalika: '',
+        ward: '',
+        pincode: form.pincode.trim(),
         revenuedivision: '',
-        regnotype:       form.regnoType,
-        regnovalue:      form.registrationNumber.trim(),
-        concernname:     form.contactPersonName.trim(),
-        username:        form.username.trim(),
-        concernmobile:   form.contactPhone.trim(),
-        concernemail:    form.email.trim(),
-        password:        form.password,
+        regnotype: form.regnoType,
+        regnovalue: form.registrationNumber.trim(),
+        concernname: form.contactPersonName.trim(),
+        username: form.username.trim(),
+        concernmobile: form.contactPhone.trim(),
+        concernemail: form.email.trim(),
+        password: form.password,
       };
 
-      const res  = await fetch(`${API_BASE}/register`, {
-        method:  'POST',
-        headers: {'Content-Type': 'application/json'},
-        body:    JSON.stringify(payload),
+      const res = await fetch(`${API_BASE}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
 
@@ -341,7 +341,7 @@ const handleNext = () => {
       }
 
       Alert.alert('Success', 'Registration successful! Please log in to continue to the POSH Survey..', [
-        {text: 'OK', onPress: () => navigation.navigate('CompanyLogin')},
+        { text: 'OK', onPress: () => navigation.navigate('CompanyLogin') },
       ]);
     } catch (err) {
       Alert.alert('Error', 'Server error. Backend chalu aahe ka?');
@@ -383,11 +383,11 @@ const handleNext = () => {
 
       <ScrollView contentContainerStyle={s.scroll} keyboardShouldPersistTaps="handled" nestedScrollEnabled>
 
-          {/* ── Info Card ── */}
+        {/* ── Info Card ── */}
         <View style={s.infoCard}>
           <View style={s.badgeRow}>
-            <View style={s.logoBadge}><Text style={{fontSize: 22}}>🛡</Text></View>
-            <View style={s.logoBadge}><Text style={{fontSize: 22}}>⭐</Text></View>
+            <View style={s.logoBadge}><Text style={{ fontSize: 22 }}>🛡</Text></View>
+            <View style={s.logoBadge}><Text style={{ fontSize: 22 }}>⭐</Text></View>
           </View>
           <Text style={s.infoTitle}>WCD Inspection</Text>
           <Text style={s.infoSub}>Maharashtra State</Text>
@@ -421,7 +421,7 @@ const handleNext = () => {
           <View style={s.brandRow}>
             <View style={s.brand}>
               <View style={s.brandIcon}>
-                <Text style={{fontSize: 22}}>🏢</Text>
+                <Text style={{ fontSize: 22 }}>🏢</Text>
               </View>
               <View>
                 <Text style={s.brandTitle}>WCD Admin</Text>
@@ -465,19 +465,19 @@ const handleNext = () => {
               </View>
 
               <View style={s.twoCol}>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <SelectField label="Org Type *" icon="🏗" value={form.orgtype} options={ORG_TYPE_OPTIONS} onSelect={update('orgtype')} />
                 </View>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <SelectField label="Industry Sector" icon="🏭" value={form.industryType} options={INDUSTRY_OPTIONS} onSelect={update('industryType')} />
                 </View>
               </View>
 
               {/* <InputField label="Company Name *" icon="🏢" placeholder="Registered company name" value={form.companyName} onChangeText={update('companyName')} /> */}
 
-          <InputField label="Company Name *" icon="🏢" placeholder="Registered company name" value={form.companyName} onChangeText={t => update('companyName')(filterTextOnly(t))} />  
-            
-            
+              <InputField label="Company Name *" icon="🏢" placeholder="Registered company name" value={form.companyName} onChangeText={t => update('companyName')(filterTextOnly(t))} />
+
+
               {/* <View style={s.twoCol}>
                 <View style={{flex: 1}}>
                   <SelectField label="Reg. Type *" icon="#️⃣" value={form.regnoType} options={REG_TYPE_OPTIONS} onSelect={update('regnoType')} />
@@ -490,18 +490,18 @@ const handleNext = () => {
 
 
               <View style={s.twoCol}>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <SelectField label="Reg. Type *" icon="#️⃣" value={form.regnoType} options={REG_TYPE_OPTIONS} onSelect={handleRegNoTypeChange} />
                 </View>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <InputField
                     label="Reg. Number *"
                     icon="#️⃣"
                     placeholder={
                       form.regnoType === 'GST' ? '27AAAAA0000A1Z5' :
-                      form.regnoType === 'PAN' ? 'AAAAA0000A' :
-                      form.regnoType === 'TAN' ? 'AAAA00000A' :
-                      'Select type first'
+                        form.regnoType === 'PAN' ? 'AAAAA0000A' :
+                          form.regnoType === 'TAN' ? 'AAAA00000A' :
+                            'Select type first'
                     }
                     value={form.registrationNumber}
                     onChangeText={handleRegistrationNumberChange}
@@ -538,11 +538,11 @@ const handleNext = () => {
                   onSelect={update('taluka')}
                 />
               ) : (
-                <View style={{marginBottom: 14}}>
+                <View style={{ marginBottom: 14 }}>
                   <Text style={fs.fieldLabel}>TALUKA</Text>
-                  <View style={[fs.inputWrap, {opacity: 0.5}]}>
+                  <View style={[fs.inputWrap, { opacity: 0.5 }]}>
                     <View style={fs.inputIcon}><Text>📍</Text></View>
-                    <Text style={[fs.inputText, {color: 'rgba(44,61,131,0.35)'}]}>
+                    <Text style={[fs.inputText, { color: 'rgba(44,61,131,0.35)' }]}>
                       Aadhi District select kara
                     </Text>
                   </View>
@@ -550,10 +550,10 @@ const handleNext = () => {
               )}
 
               <View style={s.twoCol}>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <InputField label="City" icon="🌐" placeholder="e.g. Pune" value={form.city} onChangeText={update('city')} />
                 </View>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <InputField label="Pincode" icon="📮" placeholder="6 digit" value={form.pincode} onChangeText={t => update('pincode')(t.replace(/\D/g, '').slice(0, 6))} keyboardType="numeric" maxLength={6} />
                 </View>
               </View>
@@ -569,24 +569,24 @@ const handleNext = () => {
               </View>
 
               {/* <InputField label="Contact Person Name" icon="👤" placeholder="Full name" value={form.contactPersonName} onChangeText={update('contactPersonName')} /> */}
-             
-             <InputField label="Contact Person Name" icon="👤" placeholder="Full name" value={form.contactPersonName} onChangeText={t => update('contactPersonName')(filterTextOnly(t))} />
-             
+
+              <InputField label="Contact Person Name" icon="👤" placeholder="Full name" value={form.contactPersonName} onChangeText={t => update('contactPersonName')(filterTextOnly(t))} />
+
               <InputField label="Username *" icon="👤" placeholder="Choose a username" value={form.username} onChangeText={update('username')} />
 
               <View style={s.twoCol}>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <InputField label="Mobile Number *" icon="📱" placeholder="10 digit" value={form.contactPhone} onChangeText={t => update('contactPhone')(t.replace(/\D/g, '').slice(0, 10))} keyboardType="numeric" maxLength={10} />
                 </View>
                 {/* <View style={{flex: 1}}>
                   <InputField label="Email Address" icon="📧" placeholder="company@email.com" value={form.email} onChangeText={update('email')} keyboardType="email-address" />
                 </View> */}
-             
-             <View style={{flex: 1}}>
+
+                <View style={{ flex: 1 }}>
                   <InputField label="Email Address" icon="📧" placeholder="company@email.com" value={form.email} onChangeText={handleEmailChange} keyboardType="email-address" error={errors.email} />
                 </View>
-             
-             
+
+
               </View>
 
               <InputField label="Password *" icon="🔒" placeholder="Create a login password" value={form.password} onChangeText={update('password')} secureTextEntry />
@@ -597,11 +597,11 @@ const handleNext = () => {
               </View>
 
               <View style={s.twoCol}>
-                <View style={{flex: 1}}>
-                  <SelectField label="POSH Policy" icon="✅" value={form.poshPolicyAdopted} options={['yes','no','in_progress']} onSelect={update('poshPolicyAdopted')} />
+                <View style={{ flex: 1 }}>
+                  <SelectField label="POSH Policy" icon="✅" value={form.poshPolicyAdopted} options={['yes', 'no', 'in_progress']} onSelect={update('poshPolicyAdopted')} />
                 </View>
-                <View style={{flex: 1}}>
-                  <SelectField label="Complaint Mechanism" icon="⚠️" value={form.complaintMechanismInPlace} options={['yes','no','in_progress']} onSelect={update('complaintMechanismInPlace')} />
+                <View style={{ flex: 1 }}>
+                  <SelectField label="Complaint Mechanism" icon="⚠️" value={form.complaintMechanismInPlace} options={['yes', 'no', 'in_progress']} onSelect={update('complaintMechanismInPlace')} />
                 </View>
               </View>
 
@@ -622,10 +622,10 @@ const handleNext = () => {
               </View>
 
               <View style={s.twoCol}>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <InputField label="Website" icon="🌐" placeholder="https://company.com" value={form.website} onChangeText={update('website')} />
                 </View>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <InputField label="Founded Year" icon="#️⃣" placeholder="e.g. 2005" value={form.foundedYear} onChangeText={update('foundedYear')} keyboardType="numeric" />
                 </View>
               </View>
@@ -639,11 +639,11 @@ const handleNext = () => {
                 </View>
               </View> */}
 
-<View style={s.twoCol}>
-                <View style={{flex: 1}}>
+              <View style={s.twoCol}>
+                <View style={{ flex: 1 }}>
                   <InputField label="GST Number" icon="#️⃣" placeholder="27AAAAA0000A1Z5" value={form.gstNumber} onChangeText={handleGstChange} error={errors.gstNumber} />
                 </View>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <InputField label="PAN Number" icon="#️⃣" placeholder="AAAAA0000A" value={form.panNumber} onChangeText={handlePanChange} error={errors.panNumber} />
                 </View>
               </View>
@@ -651,17 +651,17 @@ const handleNext = () => {
 
 
               <View style={s.twoCol}>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <InputField label="CIN Number" icon="#️⃣" placeholder="U12345MH..." value={form.cinNumber} onChangeText={update('cinNumber')} />
                 </View>
-                <View style={{flex: 1}}>
+                <View style={{ flex: 1 }}>
                   <InputField label="Female Employees" icon="👥" placeholder="e.g. 45" value={form.femaleEmployees} onChangeText={update('femaleEmployees')} keyboardType="numeric" />
                 </View>
               </View>
 
               <InputField label="Company Description" icon="🏠" placeholder="Brief description of your company..." value={form.companyDescription} onChangeText={update('companyDescription')} multiline />
 
-              <View style={[s.noteBox, {borderColor: 'rgba(205,54,107,0.15)', backgroundColor: 'rgba(205,54,107,0.04)'}]}>
+              <View style={[s.noteBox, { borderColor: 'rgba(205,54,107,0.15)', backgroundColor: 'rgba(205,54,107,0.04)' }]}>
                 <Text style={s.noteText}>
                   🔹 हे fields optional आहेत — blank सोडू शकता. Submit केल्यावर थेट POSH Survey वर जाल.
                 </Text>
@@ -683,8 +683,8 @@ const handleNext = () => {
               {loading
                 ? <ActivityIndicator color="#fff" />
                 : <Text style={s.submitBtnText}>
-                    {page < 2 ? 'Next →' : 'Proceed to POSH Survey ✓'}
-                  </Text>}
+                  {page < 2 ? 'Next →' : 'Proceed to POSH Survey ✓'}
+                </Text>}
             </TouchableOpacity>
           </View>
 
@@ -696,7 +696,7 @@ const handleNext = () => {
           </View>
         </View>
 
-      
+
 
         {/* Steps Card */}
         {/* <View style={s.stepsCard}>
@@ -744,114 +744,114 @@ const handleNext = () => {
 
 // ── Field Styles ──
 const fs = StyleSheet.create({
-  fieldLabel:    {fontSize: 11, fontWeight: '700', color: 'rgba(44,61,131,0.55)', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8},
-  inputWrap:     {flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(44,61,131,0.12)', borderRadius: 12, overflow: 'visible', backgroundColor: '#fff'},
-  inputIcon:     {width: 42, backgroundColor: 'rgba(44,61,131,0.05)', paddingVertical: 13, alignItems: 'center', borderRightWidth: 1, borderRightColor: 'rgba(44,61,131,0.12)', borderTopLeftRadius: 12, borderBottomLeftRadius: 12},
-  inputText:     {flex: 1, fontSize: 13, color: '#1d2a60', paddingHorizontal: 10, paddingVertical: 13},
-  arrow:         {paddingRight: 12, fontSize: 10, color: 'rgba(44,61,131,0.5)'},
-  menu:          {borderWidth: 1, borderColor: 'rgba(44,61,131,0.12)', borderRadius: 12, marginTop: 4, backgroundColor: '#fff', maxHeight: 220, zIndex: 999},
-  menuItem:      {paddingVertical: 12, paddingHorizontal: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.06)'},
-  menuItemActive:{backgroundColor: 'rgba(205,54,107,0.06)'},
-  menuText:      {fontSize: 13, color: '#1d2a60'},
-  menuTextActive:{color: '#CD366B', fontWeight: '700'},
-  inputWrapError: {borderColor: '#ef4444'},
-errorText: {color: '#ef4444', fontSize: 11, marginTop: 5, fontWeight: '600'},
+  fieldLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(44,61,131,0.55)', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 8 },
+  inputWrap: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: 'rgba(44,61,131,0.12)', borderRadius: 12, overflow: 'visible', backgroundColor: '#fff' },
+  inputIcon: { width: 42, backgroundColor: 'rgba(44,61,131,0.05)', paddingVertical: 13, alignItems: 'center', borderRightWidth: 1, borderRightColor: 'rgba(44,61,131,0.12)', borderTopLeftRadius: 12, borderBottomLeftRadius: 12 },
+  inputText: { flex: 1, fontSize: 13, color: '#1d2a60', paddingHorizontal: 10, paddingVertical: 13 },
+  arrow: { paddingRight: 12, fontSize: 10, color: 'rgba(44,61,131,0.5)' },
+  menu: { borderWidth: 1, borderColor: 'rgba(44,61,131,0.12)', borderRadius: 12, marginTop: 4, backgroundColor: '#fff', maxHeight: 220, zIndex: 999 },
+  menuItem: { paddingVertical: 12, paddingHorizontal: 14, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.06)' },
+  menuItemActive: { backgroundColor: 'rgba(205,54,107,0.06)' },
+  menuText: { fontSize: 13, color: '#1d2a60' },
+  menuTextActive: { color: '#CD366B', fontWeight: '700' },
+  inputWrapError: { borderColor: '#ef4444' },
+  errorText: { color: '#ef4444', fontSize: 11, marginTop: 5, fontWeight: '600' },
 });
 
 // ── Screen Styles ──
 const s = StyleSheet.create({
-  safe:   {flex: 1, backgroundColor: CREAM},
-  scroll: {padding: 16, paddingBottom: 8},
+  safe: { flex: 1, backgroundColor: CREAM },
+  scroll: { padding: 16, paddingBottom: 8 },
 
   // topbar:      {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.08)'},
   // backBtn:     {paddingVertical: 4, paddingRight: 8},
   // backText:    {fontSize: 13, color: BLUE, fontWeight: '700'},
 
-  topbar:       {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.08)'},
-  topbarCenter: {flexDirection: 'row', alignItems: 'center', gap: 8},
-  topbarIcon:   {width: 28, height: 28, borderRadius: 7, backgroundColor: 'rgba(205,54,107,0.10)', justifyContent: 'center', alignItems: 'center', overflow: 'hidden'},
-  topbarLogoImg:{width: 20, height: 20},
-  
-  topbarTitle: {fontSize: 14, fontWeight: '700', color: BLUE_DEEP},
-  statusPill:  {flexDirection: 'row', alignItems: 'center', gap: 5},
-  statusDot:   {width: 7, height: 7, borderRadius: 4, backgroundColor: PINK},
-  statusText:  {fontSize: 12, fontWeight: '600', color: PINK},
+  topbar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.08)' },
+  topbarCenter: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  topbarIcon: { width: 28, height: 28, borderRadius: 7, backgroundColor: 'rgba(205,54,107,0.10)', justifyContent: 'center', alignItems: 'center', overflow: 'hidden' },
+  topbarLogoImg: { width: 20, height: 20 },
 
-  card: {backgroundColor: '#fff', borderRadius: 20, borderTopWidth: 4, borderTopColor: PINK, padding: 22, marginBottom: 16, shadowColor: BLUE, shadowOffset: {width: 0, height: 8}, shadowOpacity: 0.08, shadowRadius: 20, elevation: 4},
+  topbarTitle: { fontSize: 14, fontWeight: '700', color: BLUE_DEEP },
+  statusPill: { flexDirection: 'row', alignItems: 'center', gap: 5 },
+  statusDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: PINK },
+  statusText: { fontSize: 12, fontWeight: '600', color: PINK },
 
-  brandRow:    {flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.08)'},
-  brand:       {flexDirection: 'row', alignItems: 'center', gap: 12},
-  brandIcon:   {width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(205,54,107,0.10)', justifyContent: 'center', alignItems: 'center'},
-  brandTitle:  {fontSize: 17, fontWeight: '800', color: BLUE_DEEP},
-  brandSub:    {fontSize: 12, fontWeight: '600', color: PINK, marginTop: 2},
-  versionPill: {backgroundColor: 'rgba(205,54,107,0.08)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999},
-  versionText: {fontSize: 11, fontWeight: '700', color: PINK},
+  card: { backgroundColor: '#fff', borderRadius: 20, borderTopWidth: 4, borderTopColor: PINK, padding: 22, marginBottom: 16, shadowColor: BLUE, shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.08, shadowRadius: 20, elevation: 4 },
 
-  heading:    {fontSize: 22, fontWeight: '800', color: BLUE_DEEP, letterSpacing: -0.3, marginBottom: 4},
-  subheading: {fontSize: 13, color: 'rgba(44,61,131,0.55)', marginBottom: 18},
+  brandRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingBottom: 16, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(44,61,131,0.08)' },
+  brand: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  brandIcon: { width: 44, height: 44, borderRadius: 12, backgroundColor: 'rgba(205,54,107,0.10)', justifyContent: 'center', alignItems: 'center' },
+  brandTitle: { fontSize: 17, fontWeight: '800', color: BLUE_DEEP },
+  brandSub: { fontSize: 12, fontWeight: '600', color: PINK, marginTop: 2 },
+  versionPill: { backgroundColor: 'rgba(205,54,107,0.08)', paddingHorizontal: 12, paddingVertical: 5, borderRadius: 999 },
+  versionText: { fontSize: 11, fontWeight: '700', color: PINK },
 
-  stepper:        {flexDirection: 'row', backgroundColor: 'rgba(44,61,131,0.04)', borderRadius: 12, padding: 4, gap: 4, marginBottom: 20},
-  step:           {flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 9, borderRadius: 9},
-  stepActive:     {backgroundColor: PINK, shadowColor: PINK, shadowOffset: {width: 0, height: 4}, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4},
-  stepDone:       {backgroundColor: 'rgba(44,61,131,0.08)'},
-  stepNum:        {width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.25)', justifyContent: 'center', alignItems: 'center'},
-  stepNumActive:  {backgroundColor: 'rgba(255,255,255,0.25)'},
-  stepNumDone:    {backgroundColor: BLUE},
-  stepNumText:    {fontSize: 10, fontWeight: '800', color: 'rgba(44,61,131,0.45)'},
-  stepNumTextActive: {color: '#fff'},
-  stepLabel:      {fontSize: 11, fontWeight: '700', color: 'rgba(44,61,131,0.45)'},
-  stepLabelActive:{color: '#fff'},
+  heading: { fontSize: 22, fontWeight: '800', color: BLUE_DEEP, letterSpacing: -0.3, marginBottom: 4 },
+  subheading: { fontSize: 13, color: 'rgba(44,61,131,0.55)', marginBottom: 18 },
 
-  sectionHead:  {flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14, marginTop: 4},
-  sectionIcon:  {fontSize: 14},
-  sectionTitle: {fontSize: 11, fontWeight: '800', color: BLUE_DEEP, textTransform: 'uppercase', letterSpacing: 0.8},
+  stepper: { flexDirection: 'row', backgroundColor: 'rgba(44,61,131,0.04)', borderRadius: 12, padding: 4, gap: 4, marginBottom: 20 },
+  step: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, paddingVertical: 9, borderRadius: 9 },
+  stepActive: { backgroundColor: PINK, shadowColor: PINK, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4 },
+  stepDone: { backgroundColor: 'rgba(44,61,131,0.08)' },
+  stepNum: { width: 18, height: 18, borderRadius: 9, backgroundColor: 'rgba(255,255,255,0.25)', justifyContent: 'center', alignItems: 'center' },
+  stepNumActive: { backgroundColor: 'rgba(255,255,255,0.25)' },
+  stepNumDone: { backgroundColor: BLUE },
+  stepNumText: { fontSize: 10, fontWeight: '800', color: 'rgba(44,61,131,0.45)' },
+  stepNumTextActive: { color: '#fff' },
+  stepLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(44,61,131,0.45)' },
+  stepLabelActive: { color: '#fff' },
 
-  twoCol: {flexDirection: 'row', gap: 10},
+  sectionHead: { flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 14, marginTop: 4 },
+  sectionIcon: { fontSize: 14 },
+  sectionTitle: { fontSize: 11, fontWeight: '800', color: BLUE_DEEP, textTransform: 'uppercase', letterSpacing: 0.8 },
 
-  noteBox:  {backgroundColor: 'rgba(44,61,131,0.04)', borderWidth: 1, borderColor: 'rgba(44,61,131,0.10)', borderRadius: 10, padding: 12, marginTop: 4},
-  noteText: {fontSize: 12, color: 'rgba(44,61,131,0.55)', lineHeight: 18},
+  twoCol: { flexDirection: 'row', gap: 10 },
 
-  btnRow:        {flexDirection: 'row', gap: 10, marginTop: 20},
-  ghostBtn:      {paddingHorizontal: 20, paddingVertical: 14, borderRadius: 12, borderWidth: 1.5, borderColor: 'rgba(44,61,131,0.15)', justifyContent: 'center', alignItems: 'center'},
-  ghostBtnText:  {fontSize: 14, fontWeight: '700', color: BLUE_DEEP},
-  submitBtn:     {flex: 1, backgroundColor: PINK, borderRadius: 12, paddingVertical: 14, alignItems: 'center', shadowColor: PINK, shadowOffset: {width: 0, height: 6}, shadowOpacity: 0.3, shadowRadius: 12, elevation: 4},
-  btnDisabled:   {opacity: 0.5},
-  submitBtnText: {color: '#fff', fontSize: 14, fontWeight: '700'},
+  noteBox: { backgroundColor: 'rgba(44,61,131,0.04)', borderWidth: 1, borderColor: 'rgba(44,61,131,0.10)', borderRadius: 10, padding: 12, marginTop: 4 },
+  noteText: { fontSize: 12, color: 'rgba(44,61,131,0.55)', lineHeight: 18 },
 
-  linksRow:  {flexDirection: 'row', justifyContent: 'center', marginTop: 16},
-  linksText: {fontSize: 13, color: 'rgba(44,61,131,0.55)'},
-  linksLink: {fontSize: 13, fontWeight: '700', color: PINK},
+  btnRow: { flexDirection: 'row', gap: 10, marginTop: 20 },
+  ghostBtn: { paddingHorizontal: 20, paddingVertical: 14, borderRadius: 12, borderWidth: 1.5, borderColor: 'rgba(44,61,131,0.15)', justifyContent: 'center', alignItems: 'center' },
+  ghostBtnText: { fontSize: 14, fontWeight: '700', color: BLUE_DEEP },
+  submitBtn: { flex: 1, backgroundColor: PINK, borderRadius: 12, paddingVertical: 14, alignItems: 'center', shadowColor: PINK, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 4 },
+  btnDisabled: { opacity: 0.5 },
+  submitBtnText: { color: '#fff', fontSize: 14, fontWeight: '700' },
 
-  infoCard:       {backgroundColor: BLUE, borderRadius: 20, padding: 22, marginBottom: 16, shadowColor: BLUE_DEEP, shadowOffset: {width: 0, height: 10}, shadowOpacity: 0.3, shadowRadius: 20, elevation: 6},
-  badgeRow:       {flexDirection: 'row', justifyContent: 'center', gap: 14, marginBottom: 16},
-  logoBadge:      {width: 48, height: 48, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center'},
-  infoTitle:      {color: '#fff', fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: 4},
-  infoSub:        {color: 'rgba(255,255,255,0.55)', fontSize: 13, textAlign: 'center', marginBottom: 14},
-  portalPill:     {backgroundColor: PINK, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 18, alignSelf: 'center', marginBottom: 14},
-  portalPillText: {color: '#fff', fontSize: 11, fontWeight: '800', letterSpacing: 0.6},
-  infoDesc:       {color: 'rgba(255,255,255,0.55)', fontSize: 12, textAlign: 'center', lineHeight: 18, marginBottom: 18},
-  statsRow:       {flexDirection: 'row', justifyContent: 'space-around'},
-  statItem:       {alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)'},
-  statNum:        {color: '#fff', fontSize: 18, fontWeight: '800'},
-  statLabel:      {color: 'rgba(255,255,255,0.5)', fontSize: 10, marginTop: 2},
+  linksRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 16 },
+  linksText: { fontSize: 13, color: 'rgba(44,61,131,0.55)' },
+  linksLink: { fontSize: 13, fontWeight: '700', color: PINK },
 
-  stepsCard:    {backgroundColor: '#fff', borderRadius: 18, padding: 20, marginBottom: 16, shadowColor: BLUE, shadowOffset: {width: 0, height: 6}, shadowOpacity: 0.06, shadowRadius: 14, elevation: 3},
-  stepsHead:    {flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14},
-  stepsLabel:   {fontSize: 11, fontWeight: '800', color: 'rgba(44,61,131,0.45)', letterSpacing: 1, textTransform: 'uppercase'},
-  stepsTag:     {fontSize: 12, fontWeight: '700', color: PINK},
-  stepRow:      {flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(44,61,131,0.08)', backgroundColor: 'rgba(44,61,131,0.02)', marginBottom: 8},
-  stepRowActive:{borderColor: 'rgba(205,54,107,0.20)', backgroundColor: 'rgba(205,54,107,0.04)'},
-  stepRowPosh:  {borderColor: 'rgba(205,54,107,0.30)', backgroundColor: 'rgba(205,54,107,0.03)'},
-  stepDot:      {width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(44,61,131,0.08)', justifyContent: 'center', alignItems: 'center', marginTop: 1},
-  stepDotActive:{backgroundColor: PINK},
-  stepDotDone:  {backgroundColor: BLUE},
-  stepDotText:  {fontSize: 10, fontWeight: '800', color: 'rgba(44,61,131,0.45)'},
-  stepDotTextActive: {color: '#fff'},
-  stepRowTitle: {fontSize: 12, fontWeight: '700', color: BLUE_DEEP},
-  stepRowDesc:  {fontSize: 10, color: 'rgba(44,61,131,0.5)', marginTop: 2},
-  secureNote:   {flexDirection: 'row', justifyContent: 'center', paddingTop: 12, marginTop: 6, borderTopWidth: 1, borderTopColor: 'rgba(44,61,131,0.08)'},
-  secureText:   {fontSize: 11, color: 'rgba(44,61,131,0.45)', fontWeight: '500'},
+  infoCard: { backgroundColor: BLUE, borderRadius: 20, padding: 22, marginBottom: 16, shadowColor: BLUE_DEEP, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.3, shadowRadius: 20, elevation: 6 },
+  badgeRow: { flexDirection: 'row', justifyContent: 'center', gap: 14, marginBottom: 16 },
+  logoBadge: { width: 48, height: 48, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center', alignItems: 'center' },
+  infoTitle: { color: '#fff', fontSize: 20, fontWeight: '800', textAlign: 'center', marginBottom: 4 },
+  infoSub: { color: 'rgba(255,255,255,0.55)', fontSize: 13, textAlign: 'center', marginBottom: 14 },
+  portalPill: { backgroundColor: PINK, borderRadius: 999, paddingVertical: 8, paddingHorizontal: 18, alignSelf: 'center', marginBottom: 14 },
+  portalPillText: { color: '#fff', fontSize: 11, fontWeight: '800', letterSpacing: 0.6 },
+  infoDesc: { color: 'rgba(255,255,255,0.55)', fontSize: 12, textAlign: 'center', lineHeight: 18, marginBottom: 18 },
+  statsRow: { flexDirection: 'row', justifyContent: 'space-around' },
+  statItem: { alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.06)', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 14, borderWidth: 1, borderColor: 'rgba(255,255,255,0.10)' },
+  statNum: { color: '#fff', fontSize: 18, fontWeight: '800' },
+  statLabel: { color: 'rgba(255,255,255,0.5)', fontSize: 10, marginTop: 2 },
 
-  footer:     {backgroundColor: '#fff', paddingVertical: 12, borderTopWidth: 1, borderTopColor: 'rgba(44,61,131,0.08)', alignItems: 'center'},
-  footerText: {fontSize: 12, color: 'rgba(44,61,131,0.45)'},
+  stepsCard: { backgroundColor: '#fff', borderRadius: 18, padding: 20, marginBottom: 16, shadowColor: BLUE, shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.06, shadowRadius: 14, elevation: 3 },
+  stepsHead: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 14 },
+  stepsLabel: { fontSize: 11, fontWeight: '800', color: 'rgba(44,61,131,0.45)', letterSpacing: 1, textTransform: 'uppercase' },
+  stepsTag: { fontSize: 12, fontWeight: '700', color: PINK },
+  stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, padding: 10, borderRadius: 10, borderWidth: 1, borderColor: 'rgba(44,61,131,0.08)', backgroundColor: 'rgba(44,61,131,0.02)', marginBottom: 8 },
+  stepRowActive: { borderColor: 'rgba(205,54,107,0.20)', backgroundColor: 'rgba(205,54,107,0.04)' },
+  stepRowPosh: { borderColor: 'rgba(205,54,107,0.30)', backgroundColor: 'rgba(205,54,107,0.03)' },
+  stepDot: { width: 26, height: 26, borderRadius: 13, backgroundColor: 'rgba(44,61,131,0.08)', justifyContent: 'center', alignItems: 'center', marginTop: 1 },
+  stepDotActive: { backgroundColor: PINK },
+  stepDotDone: { backgroundColor: BLUE },
+  stepDotText: { fontSize: 10, fontWeight: '800', color: 'rgba(44,61,131,0.45)' },
+  stepDotTextActive: { color: '#fff' },
+  stepRowTitle: { fontSize: 12, fontWeight: '700', color: BLUE_DEEP },
+  stepRowDesc: { fontSize: 10, color: 'rgba(44,61,131,0.5)', marginTop: 2 },
+  secureNote: { flexDirection: 'row', justifyContent: 'center', paddingTop: 12, marginTop: 6, borderTopWidth: 1, borderTopColor: 'rgba(44,61,131,0.08)' },
+  secureText: { fontSize: 11, color: 'rgba(44,61,131,0.45)', fontWeight: '500' },
+
+  footer: { backgroundColor: '#fff', paddingVertical: 12, borderTopWidth: 1, borderTopColor: 'rgba(44,61,131,0.08)', alignItems: 'center' },
+  footerText: { fontSize: 12, color: 'rgba(44,61,131,0.45)' },
 });
