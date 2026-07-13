@@ -957,7 +957,7 @@ setSubmittingReview(true);
               ) : (
                 <View style={[ms.locationBox, ms.locationSuccess]}>
                   <Text style={ms.locationText}>
-                    ✅ Location milali — {rv.latitude?.toFixed(4)}, {rv.longitude?.toFixed(4)}
+                    ✅ Location — {rv.latitude?.toFixed(4)}, {rv.longitude?.toFixed(4)}
                   </Text>
                 </View>
               )}
