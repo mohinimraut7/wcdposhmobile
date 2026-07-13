@@ -67,7 +67,7 @@ const AppSelectionScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>ॲप्लिकेशन निवडा</Text>
+      <Text style={styles.title}>Choose Application</Text>
       <View style={styles.divider} />
 
       <FlatList
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
   },
   cardDisabled: {
-    opacity: 0.5,
+    // opacity: 0.5,
   },
   imageBox: {
     width: 80,
@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
     color: '#999',
   },
   proceedBtn: {
-    backgroundColor: '#E07B39',
+    backgroundColor: '#CD366B',
     margin: 16,
     paddingVertical: 16,
     borderRadius: 10,

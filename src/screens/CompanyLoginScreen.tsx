@@ -19,7 +19,7 @@ import wcdLogo from '../assets/wcdlogo.jpeg';
 
 // import mshasan from '../assets/maharashtrashasan.jfif';
 
-import satya from '../assets/satya.png';
+import mlogo from '../assets/maharashtralogo.png';
 
 const API_BASE = 'https://mahaposhact.saavi.co.in/api/org';
 
@@ -162,15 +162,16 @@ export default function CompanyLoginScreen({navigation}: any) {
         <View style={s.infoCard}>
           <View style={s.badgeRow}>
             <View style={s.logoBadge}><Text style={{fontSize: 22}}>   
-               <Image source={wcdLogo } style={s.topbarLogoImg} resizeMode="contain" /></Text></View>
+               <Image source={wcdLogo } style={s.topbarLogoImg} resizeMode="contain" />
+               </Text></View>
             <View style={s.logoBadge}><Text style={{fontSize: 22}}>
-                  <Image source={satya} style={s.topbarLogoImg} resizeMode="contain" />
+                  <Image source={mlogo} style={s.topbarLogoImg} resizeMode="contain" />
               </Text></View>
           </View>
           <Text style={s.infoTitle}>Company Portal</Text>
           <Text style={s.infoSub}>Maharashtra WCD</Text>
           <View style={s.portalPill}>
-            <Text style={s.portalPillText}>🛡 POSH COMPLIANCE</Text>
+            <Text style={s.portalPillText}>POSH COMPLIANCE</Text>
           </View>
           <Text style={s.infoDesc}>
             POSH Act 2013 Compliance —{'\n'}
@@ -199,7 +200,10 @@ export default function CompanyLoginScreen({navigation}: any) {
           <View style={s.brandRow}>
             <View style={s.brand}>
               <View style={s.brandIcon}>
-                <Text style={{fontSize: 22}}>🏢</Text>
+                {/* ****** */}
+                <Text style={{fontSize: 22}}>
+                <Image source={wcdLogo} style={s.topbarLogoImg} resizeMode="contain" />
+                </Text>
               </View>
               <View>
                 <Text style={s.brandTitle}>WCD Portal</Text>

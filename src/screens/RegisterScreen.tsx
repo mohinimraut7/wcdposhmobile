@@ -17,7 +17,7 @@ import {
   Image
 } from 'react-native';
 import wcdLogo from '../assets/wcdlogo.jpeg';
-import mshasan from '../assets/maharashtrashasan.jfif';
+import mlogo from '../assets/maharashtralogo.png';
 
 import satya from '../assets/satya.png';
 
@@ -391,13 +391,19 @@ export default function RegisterScreen({ navigation }: any) {
         {/* ── Info Card ── */}
         <View style={s.infoCard}>
           <View style={s.badgeRow}>
-            <View style={s.logoBadge}><Text style={{ fontSize: 22 }}>🛡</Text></View>
-            <View style={s.logoBadge}><Text style={{ fontSize: 22 }}>⭐</Text></View>
+            <View style={s.logoBadge}><Text style={{ fontSize: 22 }}>
+              <Image source={wcdLogo } style={s.topbarLogoImg} resizeMode="contain" />
+              
+              </Text></View>
+            <View style={s.logoBadge}><Text style={{ fontSize: 22 }}>
+            <Image source={mlogo} style={s.topbarLogoImg} resizeMode="contain" />
+
+              </Text></View>
           </View>
           <Text style={s.infoTitle}>WCD Inspection</Text>
           <Text style={s.infoSub}>Maharashtra State</Text>
           <View style={s.portalPill}>
-            <Text style={s.portalPillText}>🛡 COMPANY PORTAL</Text>
+            <Text style={s.portalPillText}>COMPANY PORTAL</Text>
           </View>
           <Text style={s.infoDesc}>
             Women &amp; Child Development —{'\n'}
@@ -426,7 +432,7 @@ export default function RegisterScreen({ navigation }: any) {
           <View style={s.brandRow}>
             <View style={s.brand}>
               <View style={s.brandIcon}>
-                <Text style={{ fontSize: 22 }}>🏢</Text>
+                <Text style={{ fontSize: 22 }}> <Image source={wcdLogo } style={s.topbarLogoImg} resizeMode="contain" /></Text>
               </View>
               <View>
                 <Text style={s.brandTitle}>WCD Admin</Text>
